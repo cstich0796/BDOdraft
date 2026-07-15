@@ -647,31 +647,48 @@ const _JBU='https://api.jsonbin.io/v3/b/69d16877856a682189fd0ec7';
 async function jbGet(){
   try{
     const r=await fetch('/api/jb?t='+Date.now(),{method:'GET'});
-    if(r.ok){ const d=await r.json(); jbState=d; return d; }
+    if(r.ok){
+      const d=await r.json();
+      // Merge into jbState but keep existing league data
+      jbState = Object.assign(jbState||{}, d);
+      return d;
+    }
   }catch(e){}
   try{
     const r=await fetch(_JBU+'/latest',{headers:{'X-Master-Key':_JBK,'X-Bin-Meta':'false','Cache-Control':'no-cache'}});
-    if(r.ok){ const d=await r.json(); jbState=d; return d; }
+    if(r.ok){
+      const d=await r.json();
+      jbState = Object.assign(jbState||{}, d);
+      return d;
+    }
   }catch(e){console.error('jbGet failed:',e.message);}
   return null;
 }
 async function jbPut(d){
-  // Always merge with jbState (in-memory cache) to preserve league data
-  const merged = Object.assign({}, jbState, {
-    claims: d.claims !== undefined ? d.claims : jbState.claims,
-    lobby:  d.lobby  !== undefined ? d.lobby  : jbState.lobby,
-    draft:  d.draft  !== undefined ? d.draft  : jbState.draft,
-  });
+  // Only write draft-related keys - never write league data back
+  // This keeps payload small and avoids overwriting league data
+  const draftState = {
+    claims: d.claims !== undefined ? d.claims : (jbState.claims||{}),
+    lobby:  d.lobby  !== undefined ? d.lobby  : (jbState.lobby||{ready:[],keepers:{},draftOpen:false}),
+    draft:  d.draft  !== undefined ? d.draft  : (jbState.draft||{picks:[],cur:0}),
+  };
   // Update in-memory cache
-  jbState = merged;
-  const body = JSON.stringify(merged);
+  jbState.claims = draftState.claims;
+  jbState.lobby  = draftState.lobby;
+  jbState.draft  = draftState.draft;
+  const body = JSON.stringify(draftState);
+  console.log('jbPut writing:', body.slice(0,200));
   try{
     const r=await fetch('/api/jb',{method:'PUT',headers:{'Content-Type':'application/json'},body});
+    console.log('jbPut response:', r.status);
     if(r.ok) return;
-  }catch(e){}
+    const txt = await r.text();
+    console.error('jbPut failed:', r.status, txt);
+  }catch(e){ console.error('jbPut error:', e.message); }
   try{
-    await fetch(_JBU,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_JBK},body});
-  }catch(e){console.error('jbPut failed:',e.message);}
+    const r=await fetch(_JBU,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_JBK},body});
+    console.log('jbPut direct response:', r.status);
+  }catch(e){ console.error('jbPut direct error:', e.message); }
 }
 
 // ══ SCREEN 1: CLAIM ══
