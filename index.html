@@ -833,7 +833,6 @@ function _renderCommSection(){
 async function buildCommSection(){
   // Always fetch fresh state
   const state = await jbGet();
-  console.log('buildCommSection RAW FULL state:', state ? JSON.stringify(state).slice(0,300) : 'null');
   if(state){
     if(state.lobby&&state.lobby.ready){
       commReadyData=new Set();
@@ -841,7 +840,6 @@ async function buildCommSection(){
     }
     if(state.lobby&&state.lobby.keepers) commKeeperData=Object.assign({},state.lobby.keepers);
   }
-  console.log('buildCommSection commReadyData:', Array.from(commReadyData), 'keepers:', commKeeperData);
   _renderCommSection();
   const btn=document.getElementById('commOpenBtn');
   if(btn&&draftOpen){btn.textContent='✓ DRAFT IS OPEN';btn.disabled=true;}
@@ -893,12 +891,10 @@ document.addEventListener('DOMContentLoaded',function(){
 async function pollLobby(){
   const state=await jbGet(); if(!state||!state.lobby) return;
   jbState=state;
-  console.log('pollLobby raw state.lobby.ready:', JSON.stringify(state.lobby.ready));
   // Clear and repopulate to always reflect current JSONBin state
   commReadyData = new Set();
   if(state.lobby.ready) state.lobby.ready.forEach(function(s){commReadyData.add(parseInt(s));});
   if(state.lobby.keepers) commKeeperData = Object.assign({}, state.lobby.keepers);
-  console.log('pollLobby commReadyData after update:', Array.from(commReadyData));
   if(mySlot===COMMISSIONER_SLOT) buildCommSection();
   if(state.lobby.draftOpen&&!draftOpen){draftOpen=true;onDraftOpen();}
 }
@@ -1323,14 +1319,12 @@ function loadPlayers(rejoinState){
           const seen=new Set();
           players=parsed.filter(p=>{if(seen.has(p.name))return false;seen.add(p.name);return true;});
           players.sort((a,b)=>b.stats.homeRuns-a.stats.homeRuns);
-          console.log('MLB API: loaded',players.length,'players');
           renderPool();
           if(_boardInited) setTimeout(scheduleNextPick||function(){},300);
           setInterval(pollDraft,3500);
           return;
         }
       }
-      console.log('MLB API unavailable, using fallback');
       loadFallbackPlayers();
       renderPool();
       if(_boardInited) setTimeout(function(){if(typeof scheduleNextPick==='function')scheduleNextPick();},300);
