@@ -1,4 +1,4 @@
-const NPOINT_ID = '43ac74b79abf9e620e1d';
+const NPOINT_ID = 'abd5efd56028a3ebc5ef';
 const BASE = `https://api.npoint.io/${NPOINT_ID}`;
 
 export default async function handler(req, res) {
