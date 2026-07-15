@@ -642,16 +642,30 @@ let commReadyData = new Set();
 let commKeeperData = {};
 
 // ══ JSONBIN ══
+const _JBK='$2a$10$7k5GyBi5JWWRL/3kS6pYHOSII3d7rCU0DR2hIo4T2/8N.duZ9URf6';
+const _JBU='https://api.jsonbin.io/v3/b/69d16877856a682189fd0ec7';
 async function jbGet(){
+  // Try Vercel proxy first, fall back to direct call
   try{
     const r=await fetch('/api/jb',{method:'GET'});
-    return r.ok?await r.json():null;
-  }catch(e){console.error('jbGet:',e.message);return null;}
+    if(r.ok) return await r.json();
+  }catch(e){}
+  // Direct fallback (works when CORS allows it)
+  try{
+    const r=await fetch(_JBU+'/latest',{headers:{'X-Master-Key':_JBK,'X-Bin-Meta':'false'}});
+    if(r.ok) return await r.json();
+  }catch(e){console.error('jbGet failed:',e.message);}
+  return null;
 }
 async function jbPut(d){
+  // Try Vercel proxy first, fall back to direct call
   try{
-    await fetch('/api/jb',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
-  }catch(e){console.error('jbPut:',e.message);}
+    const r=await fetch('/api/jb',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+    if(r.ok) return;
+  }catch(e){}
+  try{
+    await fetch(_JBU,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_JBK},body:JSON.stringify(d)});
+  }catch(e){console.error('jbPut failed:',e.message);}
 }
 
 // ══ SCREEN 1: CLAIM ══
@@ -792,6 +806,7 @@ function updateKeeperBar(){
 
 // Commissioner section
 function buildCommSection(){
+  console.log('buildCommSection - commReadyData:', Array.from(commReadyData));
   const readyCount=commReadyData.size;
   document.getElementById('commReadyCount').textContent=`${readyCount}/12 READY`;
   document.getElementById('commTeamList').innerHTML=DRAFT_ORDER.map(t=>{
@@ -854,8 +869,12 @@ document.addEventListener('DOMContentLoaded',function(){
 async function pollLobby(){
   const state=await jbGet(); if(!state||!state.lobby) return;
   jbState=state;
+  console.log('pollLobby raw state.lobby.ready:', JSON.stringify(state.lobby.ready));
+  // Clear and repopulate to always reflect current JSONBin state
+  commReadyData = new Set();
   if(state.lobby.ready) state.lobby.ready.forEach(function(s){commReadyData.add(parseInt(s));});
-  if(state.lobby.keepers) commKeeperData=state.lobby.keepers;
+  if(state.lobby.keepers) commKeeperData = Object.assign({}, state.lobby.keepers);
+  console.log('pollLobby commReadyData after update:', Array.from(commReadyData));
   if(mySlot===COMMISSIONER_SLOT) buildCommSection();
   if(state.lobby.draftOpen&&!draftOpen){draftOpen=true;onDraftOpen();}
 }
@@ -1528,37 +1547,7 @@ function showScreen(id){
 
 // ══ INIT ══
 let jbState = {};
-document.addEventListener('DOMContentLoaded', async function(){
-  // Check if draft already in progress
-  const state = await jbGet();
-  jbState = state || {};
-  if(state){
-    if(state.lobby?.keepers) commKeeperData=state.lobby.keepers;
-    if(state.lobby?.ready) state.lobby.ready.forEach(s=>commReadyData.add(s));
-    if(state.claims){
-      // Check if this browser already claimed a team (use localStorage as fallback)
-      const savedSlot = localStorage.getItem('bdo_my_slot');
-      if(savedSlot!==null){
-        const slot=parseInt(savedSlot);
-        if(state.claims[slot]===slot){
-          mySlot=slot;
-          if(state.lobby?.draftOpen&&state.draft&&state.draft.cur>0){
-            // Rejoin draft in progress
-            draftOpen=true;
-            showScreen('draftScreen');
-            _boardInited=true;
-            loadPlayers();
-            buildTeamBar(); updateHeader(); renderMyPicks();
-            return;
-          }
-          enterLobby();
-          return;
-        }
-      }
-    }
-  }
-  buildClaimScreen();
-});
+// Init handled by DOMContentLoaded above
 
 // Save slot to localStorage when claimed
 const _origClaim = claimTeam;
@@ -1566,6 +1555,50 @@ window.claimTeam = async function(slot){
   await _origClaim(slot);
   localStorage.setItem('bdo_my_slot', slot);
 };
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', async function(){
+  // Always render claim screen immediately so it's not blank
+  buildClaimScreen();
+
+  // Then load state from JSONBin async
+  const state = await jbGet();
+  jbState = state || {};
+
+  if(state){
+    if(state.lobby && state.lobby.keepers) commKeeperData = state.lobby.keepers;
+    if(state.lobby && state.lobby.ready){
+      commReadyData = new Set();
+      state.lobby.ready.forEach(function(s){ commReadyData.add(parseInt(s)); });
+    }
+  }
+
+  // Check localStorage for previously claimed team
+  const savedSlot = localStorage.getItem('bdo_my_slot');
+  if(savedSlot !== null && state && state.claims){
+    const slot = parseInt(savedSlot);
+    if(state.claims[slot] === slot){
+      mySlot = slot;
+      // Draft open and in progress - skip straight to board
+      if(state.lobby && state.lobby.draftOpen){
+        draftOpen = true;
+        showScreen('draftScreen');
+        showCommDraftPanel();
+        _boardInited = true;
+        loadPlayers(state.draft && state.draft.cur > 0 ? state : null);
+        return;
+      }
+      // Draft not started - go to lobby
+      enterLobby();
+      return;
+    }
+  }
+
+  // No saved slot - show claim screen (already rendered above)
+  buildClaimScreen();
+});
+
+
 </script>
 
 <div id="commDraftPanel">
