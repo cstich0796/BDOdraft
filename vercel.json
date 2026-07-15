@@ -1,13 +1,11 @@
 {
   "version": 2,
   "builds": [
-    { "src": "index (1).html", "use": "@vercel/static" },
-    { "src": "jb.js", "use": "@vercel/node" },
-    { "src": "mlb.js", "use": "@vercel/node" }
+    { "src": "index.html", "use": "@vercel/static" },
+    { "src": "api/*.js", "use": "@vercel/node" }
   ],
   "routes": [
-    { "src": "/api/jb", "dest": "/jb.js" },
-    { "src": "/api/mlb", "dest": "/mlb.js" },
-    { "src": "/(.*)", "dest": "/index (1).html" }
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
