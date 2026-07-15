@@ -1,8 +1,4 @@
 {
   "name": "bdo-draft-2026",
-  "private": true,
-  "version": "1.0.0",
-  "scripts": {
-    "build": "echo 'no build needed'"
-  }
+  "version": "1.0.0"
 }
