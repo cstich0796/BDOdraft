@@ -48,7 +48,7 @@ body{display:flex;flex-direction:column}
 .tc-status.mine{color:var(--gold)}
 
 /* ── LOBBY SCREEN ── */
-#lobbyScreen{background:var(--bg);overflow-y:auto}
+#lobbyScreen{background:var(--bg)}
 .lobby-hdr{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:10px 16px 8px;border-bottom:1px solid var(--border)}
 .lh-left{display:flex;flex-direction:column}
 .lh-eyebrow{font-size:0.42rem;letter-spacing:5px;color:var(--muted);font-weight:700}
@@ -296,7 +296,7 @@ body{display:flex;flex-direction:column}
       <div class="comm-head-title">COMMISSIONER VIEW</div>
       <div class="comm-head-count" id="commReadyCount">0/12 READY</div>
     </div>
-    <div id="commTeamList"></div>
+    <div id="commTeamList" style="max-height:40vh;overflow-y:auto;scrollbar-width:none"></div>
     <button class="comm-open-btn" id="commOpenBtn" onclick="commOpenDraft()">⚡ OPEN THE DRAFT</button>
     <button onclick="commResetDraftFull()" style="width:calc(100% - 32px);margin:0 16px 12px;padding:10px;font-family:var(--bebas);font-size:0.8rem;letter-spacing:4px;background:transparent;border:1px solid #e74c3c;color:#e74c3c;cursor:pointer;border-radius:3px">↺ RESET DRAFT</button>
   </div>
@@ -645,28 +645,26 @@ let commKeeperData = {};
 const _JBK='$2a$10$7k5GyBi5JWWRL/3kS6pYHOSII3d7rCU0DR2hIo4T2/8N.duZ9URf6';
 const _JBU='https://api.jsonbin.io/v3/b/69d16877856a682189fd0ec7';
 async function jbGet(){
-  // Try Vercel proxy first, fall back to direct call
   try{
     const r=await fetch('/api/jb',{method:'GET'});
-    if(r.ok) return await r.json();
+    if(r.ok){ const d=await r.json(); jbState=d; return d; }
   }catch(e){}
-  // Direct fallback (works when CORS allows it)
   try{
     const r=await fetch(_JBU+'/latest',{headers:{'X-Master-Key':_JBK,'X-Bin-Meta':'false'}});
-    if(r.ok) return await r.json();
+    if(r.ok){ const d=await r.json(); jbState=d; return d; }
   }catch(e){console.error('jbGet failed:',e.message);}
   return null;
 }
 async function jbPut(d){
-  // Merge draft state with existing bin data (preserves league data)
-  const existing = await jbGet() || {};
-  const merged = Object.assign({}, existing, {
-    claims: d.claims !== undefined ? d.claims : existing.claims,
-    lobby:  d.lobby  !== undefined ? d.lobby  : existing.lobby,
-    draft:  d.draft  !== undefined ? d.draft  : existing.draft,
+  // Always merge with jbState (in-memory cache) to preserve league data
+  const merged = Object.assign({}, jbState, {
+    claims: d.claims !== undefined ? d.claims : jbState.claims,
+    lobby:  d.lobby  !== undefined ? d.lobby  : jbState.lobby,
+    draft:  d.draft  !== undefined ? d.draft  : jbState.draft,
   });
+  // Update in-memory cache
+  jbState = merged;
   const body = JSON.stringify(merged);
-  // Try Vercel proxy first, fall back to direct call
   try{
     const r=await fetch('/api/jb',{method:'PUT',headers:{'Content-Type':'application/json'},body});
     if(r.ok) return;
