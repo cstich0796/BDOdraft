@@ -658,13 +658,21 @@ async function jbGet(){
   return null;
 }
 async function jbPut(d){
+  // Merge draft state with existing bin data (preserves league data)
+  const existing = await jbGet() || {};
+  const merged = Object.assign({}, existing, {
+    claims: d.claims !== undefined ? d.claims : existing.claims,
+    lobby:  d.lobby  !== undefined ? d.lobby  : existing.lobby,
+    draft:  d.draft  !== undefined ? d.draft  : existing.draft,
+  });
+  const body = JSON.stringify(merged);
   // Try Vercel proxy first, fall back to direct call
   try{
-    const r=await fetch('/api/jb',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+    const r=await fetch('/api/jb',{method:'PUT',headers:{'Content-Type':'application/json'},body});
     if(r.ok) return;
   }catch(e){}
   try{
-    await fetch(_JBU,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_JBK},body:JSON.stringify(d)});
+    await fetch(_JBU,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_JBK},body});
   }catch(e){console.error('jbPut failed:',e.message);}
 }
 
@@ -1590,8 +1598,14 @@ document.addEventListener('DOMContentLoaded', async function(){
   }
 
   // Check localStorage for previously claimed team
+  // Init missing draft keys if this is first time
+  if(state && !state.claims){
+    await jbPut({claims:{}, lobby:{ready:[],keepers:{},draftOpen:false}, draft:{picks:[],cur:0}});
+    jbState = await jbGet() || {};
+  }
+
   const savedSlot = localStorage.getItem('bdo_my_slot');
-  if(savedSlot !== null && state && state.claims){
+  if(savedSlot !== null && jbState && jbState.claims){
     const slot = parseInt(savedSlot);
     if(state.claims[slot] === slot){
       mySlot = slot;
