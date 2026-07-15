@@ -788,13 +788,13 @@ function toggleKeeper(){
   // Sync to JSONBin
   setTimeout(async function(){
     try{
-      const state = await jbGet(); if(!state) return;
-      if(!state.lobby) state.lobby={};
-      if(!state.lobby.keepers) state.lobby.keepers={};
-      if(keeperId) state.lobby.keepers[mySlot]=keeperId;
-      else delete state.lobby.keepers[mySlot];
-      await jbPut(state);
-      if(mySlot===COMMISSIONER_SLOT) buildCommSection();
+      // Update jbState directly so jbPut merge is correct
+      if(!jbState.lobby) jbState.lobby={};
+      if(!jbState.lobby.keepers) jbState.lobby.keepers={};
+      if(keeperId) jbState.lobby.keepers[mySlot]=keeperId;
+      else delete jbState.lobby.keepers[mySlot];
+      await jbPut(jbState);
+      if(mySlot===COMMISSIONER_SLOT) _renderCommSection();
     }catch(e){}
   },100);
 }
@@ -876,25 +876,24 @@ document.addEventListener('DOMContentLoaded',function(){
     this.textContent='✓ READY'; this.classList.add('on');
     commReadyData.add(mySlot);
     try{
-      const state=await jbGet()||{};
-      if(!state.lobby) state.lobby={};
-      if(!state.lobby.ready) state.lobby.ready=[];
-      if(!state.lobby.ready.includes(mySlot)) state.lobby.ready.push(mySlot);
-      await jbPut(state);
+      if(!jbState.lobby) jbState.lobby={};
+      if(!jbState.lobby.ready) jbState.lobby.ready=[];
+      if(!jbState.lobby.ready.includes(mySlot)) jbState.lobby.ready.push(mySlot);
+      await jbPut(jbState);
     }catch(e){}
     if(mySlot===COMMISSIONER_SLOT) buildCommSection();
   });
 });
 
 async function pollLobby(){
-  const state=await jbGet(); if(!state||!state.lobby) return;
+  const state=await jbGet(); if(!state) return;
   jbState=state;
-  // Clear and repopulate to always reflect current JSONBin state
+  const lobby = state.lobby || {};
   commReadyData = new Set();
-  if(state.lobby.ready) state.lobby.ready.forEach(function(s){commReadyData.add(parseInt(s));});
-  if(state.lobby.keepers) commKeeperData = Object.assign({}, state.lobby.keepers);
-  if(mySlot===COMMISSIONER_SLOT) buildCommSection();
-  if(state.lobby.draftOpen&&!draftOpen){draftOpen=true;onDraftOpen();}
+  if(lobby.ready) lobby.ready.forEach(function(s){commReadyData.add(parseInt(s));});
+  if(lobby.keepers) commKeeperData = Object.assign({}, lobby.keepers);
+  if(mySlot===COMMISSIONER_SLOT) _renderCommSection();
+  if(lobby.draftOpen&&!draftOpen){draftOpen=true;onDraftOpen();}
 }
 
 // ══ SCREEN 3: DRAFT ══
