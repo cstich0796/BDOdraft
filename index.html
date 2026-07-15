@@ -296,7 +296,7 @@ body{display:flex;flex-direction:column}
       <div class="comm-head-title">COMMISSIONER VIEW</div>
       <div class="comm-head-count" id="commReadyCount">0/12 READY</div>
     </div>
-    <div id="commTeamList" style="max-height:40vh;overflow-y:auto;scrollbar-width:none"></div>
+    <div id="commTeamList" style="max-height:55vh;overflow-y:auto;scrollbar-width:none"></div>
     <button class="comm-open-btn" id="commOpenBtn" onclick="commOpenDraft()">⚡ OPEN THE DRAFT</button>
     <button onclick="commResetDraftFull()" style="width:calc(100% - 32px);margin:0 16px 12px;padding:10px;font-family:var(--bebas);font-size:0.8rem;letter-spacing:4px;background:transparent;border:1px solid #e74c3c;color:#e74c3c;cursor:pointer;border-radius:3px">↺ RESET DRAFT</button>
   </div>
@@ -788,14 +788,19 @@ function toggleKeeper(){
   // Sync to JSONBin
   setTimeout(async function(){
     try{
-      // Update jbState directly so jbPut merge is correct
-      if(!jbState.lobby) jbState.lobby={};
-      if(!jbState.lobby.keepers) jbState.lobby.keepers={};
-      if(keeperId) jbState.lobby.keepers[mySlot]=keeperId;
-      else delete jbState.lobby.keepers[mySlot];
-      await jbPut(jbState);
+      // Always fetch latest state first to avoid overwrites
+      const fresh = await jbGet();
+      if(fresh) {
+        if(!fresh.lobby) fresh.lobby={ready:[],keepers:{},draftOpen:false};
+        if(!fresh.lobby.keepers) fresh.lobby.keepers={};
+        if(keeperId) fresh.lobby.keepers[mySlot]=keeperId;
+        else delete fresh.lobby.keepers[mySlot];
+        jbState = fresh;
+        await jbPut(fresh);
+        showToast(keeperId ? keeperId.split(' ').slice(-1)[0] + ' saved as keeper' : 'Keeper cleared');
+      }
       if(mySlot===COMMISSIONER_SLOT) _renderCommSection();
-    }catch(e){}
+    }catch(e){ console.error('keeper sync failed:', e.message); }
   },100);
 }
 function updateKeeperBar(){
@@ -827,6 +832,8 @@ function _renderCommSection(){
       +'<div class="comm-ready-dot'+(isReady?' on':'')+'"></div>'
       +'</div>';
   }).join('');
+  // Scroll to top to show first teams
+  if(list) list.scrollTop = 0;
 }
 async function buildCommSection(){
   // Always fetch fresh state
@@ -847,9 +854,10 @@ async function commOpenDraft(){
   const btn=document.getElementById('commOpenBtn');
   if(btn){btn.disabled=true;btn.textContent='OPENING...';}
   try{
-    const state=await jbGet()||{};
-    if(!state.lobby) state.lobby={};
+    const state=await jbGet()||{claims:{},lobby:{ready:[],keepers:{},draftOpen:false},draft:{picks:[],cur:0}};
+    if(!state.lobby) state.lobby={ready:[],keepers:{},draftOpen:false};
     state.lobby.draftOpen=true;
+    jbState=state;
     await jbPut(state);
     draftOpen=true;
     onDraftOpen();
@@ -876,11 +884,15 @@ document.addEventListener('DOMContentLoaded',function(){
     this.textContent='✓ READY'; this.classList.add('on');
     commReadyData.add(mySlot);
     try{
-      if(!jbState.lobby) jbState.lobby={};
-      if(!jbState.lobby.ready) jbState.lobby.ready=[];
-      if(!jbState.lobby.ready.includes(mySlot)) jbState.lobby.ready.push(mySlot);
-      await jbPut(jbState);
-    }catch(e){}
+      const fresh = await jbGet();
+      if(fresh){
+        if(!fresh.lobby) fresh.lobby={ready:[],keepers:{},draftOpen:false};
+        if(!fresh.lobby.ready) fresh.lobby.ready=[];
+        if(!fresh.lobby.ready.includes(mySlot)) fresh.lobby.ready.push(mySlot);
+        jbState = fresh;
+        await jbPut(fresh);
+      }
+    }catch(e){ console.error('ready sync failed:', e.message); }
     if(mySlot===COMMISSIONER_SLOT) buildCommSection();
   });
 });
