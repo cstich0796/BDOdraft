@@ -670,38 +670,54 @@ function buildClaimScreen(){
   const claims = (data.claims)||{};
   document.getElementById('claimList').innerHTML = DRAFT_ORDER.map(t=>{
     const claimedBy = claims[t.slot];
-    const isMine = claimedBy === t.slot;
     const isTaken = claimedBy !== undefined;
+    const mySavedSlot = parseInt(sessionStorage.getItem('bdo_my_slot'));
+    const isMyRejoin = isTaken && mySavedSlot === t.slot;
     const picks = getTeamPickNums(t.slot);
     const p1 = picks[0], p2 = picks[1];
-    return `<div class="team-card${isMine?' mine':isTaken?' claimed':''}" onclick="claimTeam(${t.slot})">
+    return `<div class="team-card${isMyRejoin?' mine':isTaken?' claimed':''}" onclick="${isMyRejoin?'rejoinDraft('+t.slot+')':'claimTeam('+t.slot+')'}">
       <div class="tc-logo">${t.logo}</div>
       <div class="tc-info">
         <div class="tc-name" style="color:${t.color}">${t.teamName}</div>
         <div class="tc-rec">${t.rec} · 2025 SEASON</div>
         <div class="tc-pick">PICKS #${p1} &amp; #${p2}</div>
       </div>
-      <div class="tc-status ${isMine?'mine':isTaken?'taken':'open'}">${isMine?'YOU':isTaken?'TAKEN':'OPEN'}</div>
+      <div class="tc-status ${isMyRejoin?'mine':isTaken?'taken':'open'}">${isMyRejoin?'REJOIN':isTaken?'TAKEN':'OPEN'}</div>
     </div>`;
   }).join('');
+}
+
+
+async function rejoinDraft(slot){
+  const state = await jbGet() || {};
+  mySlot = slot;
+  jbState = state;
+  sessionStorage.setItem('bdo_my_slot', slot);
+  if(state.lobby && state.lobby.draftOpen){
+    draftOpen = true;
+    showScreen('draftScreen');
+    showCommDraftPanel();
+    _boardInited = true;
+    loadPlayers(state.draft && state.draft.cur > 0 ? state : null);
+    return;
+  }
+  enterLobby();
 }
 
 async function claimTeam(slot){
   const state = await jbGet() || {claims:{}};
   if(!state.claims) state.claims={};
-  // If already claimed by someone else, block it
-  if(state.claims[slot] !== undefined && state.claims[slot] !== slot){
+  const alreadyClaimed = state.claims[slot] !== undefined;
+  if(alreadyClaimed){
     showToast('Already claimed!'); return;
   }
-  // If claimed or unclaimed - allow this device to (re)claim it
-  if(state.claims[slot] === undefined){
-    state.claims[slot] = slot;
-    await jbPut(state);
-  }
+  // Unclaimed - claim it
+  state.claims[slot] = slot;
+  await jbPut(state);
   mySlot = slot;
   jbState = state;
   sessionStorage.setItem('bdo_my_slot', slot);
-  // If draft already open and in progress, go straight to board
+  // If draft already open, go straight to board
   if(state.lobby && state.lobby.draftOpen){
     draftOpen = true;
     showScreen('draftScreen');
@@ -1316,7 +1332,7 @@ function loadPlayers(rejoinState){
   const season=new Date().getFullYear();
   // Try direct MLB Stats API first (works from browser/GitHub Pages)
   const mlbSeason = new Date().getFullYear();
-  fetch(`https://statsapi.mlb.com/api/v1/stats?stats=season&group=hitting&gameType=R&season=${mlbSeason}&sportId=1&limit=2000&playerPool=All`)
+  fetch(`/api/mlb?path=stats&stats=season&group=hitting&gameType=R&season=${mlbSeason}&sportId=1&limit=2000&playerPool=All`)
     .then(r => r.ok ? r.json() : null)
     .then(data => {
       if(data && data.stats && data.stats[0] && data.stats[0].splits && data.stats[0].splits.length > 50) {
