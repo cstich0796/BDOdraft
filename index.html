@@ -825,6 +825,7 @@ function _renderCommSection(){
 async function buildCommSection(){
   // Always fetch fresh state
   const state = await jbGet();
+  console.log('buildCommSection RAW FULL state:', state ? JSON.stringify(state).slice(0,300) : 'null');
   if(state){
     if(state.lobby&&state.lobby.ready){
       commReadyData=new Set();
@@ -832,6 +833,7 @@ async function buildCommSection(){
     }
     if(state.lobby&&state.lobby.keepers) commKeeperData=Object.assign({},state.lobby.keepers);
   }
+  console.log('buildCommSection commReadyData:', Array.from(commReadyData), 'keepers:', commKeeperData);
   _renderCommSection();
   const btn=document.getElementById('commOpenBtn');
   if(btn&&draftOpen){btn.textContent='✓ DRAFT IS OPEN';btn.disabled=true;}
