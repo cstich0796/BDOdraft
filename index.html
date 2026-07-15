@@ -646,11 +646,11 @@ const _JBK='$2a$10$7k5GyBi5JWWRL/3kS6pYHOSII3d7rCU0DR2hIo4T2/8N.duZ9URf6';
 const _JBU='https://api.jsonbin.io/v3/b/69d16877856a682189fd0ec7';
 async function jbGet(){
   try{
-    const r=await fetch('/api/jb',{method:'GET'});
+    const r=await fetch('/api/jb?t='+Date.now(),{method:'GET'});
     if(r.ok){ const d=await r.json(); jbState=d; return d; }
   }catch(e){}
   try{
-    const r=await fetch(_JBU+'/latest',{headers:{'X-Master-Key':_JBK,'X-Bin-Meta':'false'}});
+    const r=await fetch(_JBU+'/latest',{headers:{'X-Master-Key':_JBK,'X-Bin-Meta':'false','Cache-Control':'no-cache'}});
     if(r.ok){ const d=await r.json(); jbState=d; return d; }
   }catch(e){console.error('jbGet failed:',e.message);}
   return null;
@@ -817,6 +817,13 @@ function updateKeeperBar(){
 
 // Commissioner section
 function _renderCommSection(){
+  // Show raw debug
+  const dbg = document.getElementById('commRawDebug');
+  if(dbg){
+    dbg.style.display='block';
+    dbg.textContent = 'ready:'+JSON.stringify(jbState&&jbState.lobby&&jbState.lobby.ready||[])
+      +' keepers:'+JSON.stringify(jbState&&jbState.lobby&&jbState.lobby.keepers||{});
+  }
   const readyCount=commReadyData.size;
   const rc = document.getElementById('commReadyCount');
   if(rc) rc.textContent=readyCount+'/12 READY';
