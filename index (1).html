@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BDO REDRAFT 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#060d1f;--card:#0c1830;--border:#1a2d50;
+  --gold:#f5d800;--green:#39ff14;--teal:#00e5c8;--red:#e74c3c;
+  --muted:#3a5878;--gray:#6a8aaa;--white:#e8f0ff;
+  --bebas:'Bebas Neue',sans-serif;--barlow:'Barlow Condensed',sans-serif;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--white);font-family:var(--barlow)}
+body{display:flex;flex-direction:column}
+.screen{display:none;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
+.screen.active{display:flex}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+@keyframes glow{0%,100%{box-shadow:0 0 12px rgba(57,255,20,0.1)}50%{box-shadow:0 0 28px rgba(57,255,20,0.35)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@keyframes slideUp{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* ── CLAIM SCREEN ── */
+#claimScreen{background:var(--bg)}
+.claim-hdr{flex-shrink:0;padding:20px 16px 12px;text-align:center;border-bottom:1px solid var(--border)}
+.claim-eyebrow{font-size:0.5rem;letter-spacing:6px;color:var(--muted);font-weight:700}
+.claim-title{font-family:var(--bebas);font-size:2.8rem;letter-spacing:4px;color:var(--gold);line-height:1;margin-top:4px}
+.claim-sub{font-size:0.55rem;letter-spacing:3px;color:var(--muted);margin-top:6px}
+.claim-list{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px;scrollbar-width:none}
+.team-card{
+  display:flex;align-items:center;gap:12px;padding:14px 16px;
+  border:1px solid var(--border);border-radius:4px;background:var(--card);
+  cursor:pointer;transition:all 0.15s;position:relative;
+}
+.team-card:hover{border-color:#2a4a7a;background:#0f1e3a}
+.team-card.claimed{opacity:0.4;cursor:not-allowed}
+.team-card.mine{border-color:var(--gold);background:rgba(245,216,0,0.06)}
+.tc-logo{font-size:1.8rem;flex-shrink:0}
+.tc-info{flex:1;min-width:0}
+.tc-name{font-family:var(--bebas);font-size:1.3rem;letter-spacing:2px;line-height:1}
+.tc-rec{font-size:0.48rem;letter-spacing:2px;color:var(--muted);margin-top:3px}
+.tc-pick{font-size:0.48rem;letter-spacing:2px;color:var(--muted)}
+.tc-status{font-size:0.48rem;letter-spacing:2px;font-weight:700;flex-shrink:0}
+.tc-status.open{color:var(--green)}
+.tc-status.taken{color:var(--muted)}
+.tc-status.mine{color:var(--gold)}
+
+/* ── LOBBY SCREEN ── */
+#lobbyScreen{background:var(--bg)}
+.lobby-hdr{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:10px 16px 8px;border-bottom:1px solid var(--border)}
+.lh-left{display:flex;flex-direction:column}
+.lh-eyebrow{font-size:0.42rem;letter-spacing:5px;color:var(--muted);font-weight:700}
+.lh-name{font-family:var(--bebas);font-size:1.6rem;letter-spacing:3px;color:var(--gold);line-height:1}
+.lh-rec{font-size:0.44rem;letter-spacing:3px;color:var(--muted);margin-top:2px}
+.lh-picks{text-align:right}
+.lh-pick-num{font-family:var(--bebas);font-size:1.1rem;color:var(--gold);line-height:1}
+.lh-pick-lbl{font-size:0.4rem;letter-spacing:3px;color:var(--muted);margin-top:1px}
+.keeper-bar{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:7px 16px;background:#080f1e;border-bottom:1px solid var(--border)}
+.kb-label{font-size:0.44rem;letter-spacing:4px;color:var(--muted);font-weight:700;flex-shrink:0}
+.kb-divider{width:1px;height:14px;background:var(--border);flex-shrink:0}
+.kb-shot{width:26px;height:26px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:0.75rem}
+.kb-shot img{width:100%;height:100%;object-fit:cover;object-position:top}
+.kb-name{font-family:var(--bebas);font-size:0.9rem;letter-spacing:1px;color:var(--gold);flex:1}
+.kb-none{font-size:0.58rem;letter-spacing:2px;color:var(--muted);flex:1;font-weight:700}
+.kb-hint{font-size:0.44rem;letter-spacing:2px;color:#1e3055;flex-shrink:0}
+.lobby-roster{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:4px 16px;gap:2px;min-height:0}
+.rp{flex:1;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:3px;cursor:pointer;transition:all 0.12s;padding:0 10px 0 0;overflow:hidden;min-height:0}
+.rp:hover{border-color:#2a4a7a}
+.rp.sel{border-color:var(--gold);background:rgba(245,216,0,0.05)}
+.rp-stripe{width:3px;align-self:stretch;flex-shrink:0;background:transparent}
+.rp.sel .rp-stripe{background:var(--gold)}
+.rp-shot{width:32px;flex-shrink:0;align-self:stretch;overflow:hidden;background:#0a1525;position:relative}
+.rp-shot img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block;position:relative;z-index:1}
+.rp-shot-fb{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:0.9rem;opacity:0.15}
+.rp-name{font-family:var(--bebas);font-size:0.95rem;letter-spacing:0.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;color:var(--white);transition:color 0.12s}
+.rp.sel .rp-name{color:var(--gold)}
+.rp-hr-block{flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 12px;border-left:1px solid var(--border);align-self:stretch;min-width:48px}
+.rp-hr-num{font-family:var(--bebas);font-size:1.4rem;color:var(--muted);line-height:1;transition:color 0.12s}
+.rp.sel .rp-hr-num{color:var(--gold);text-shadow:0 0 10px rgba(245,216,0,0.4)}
+.rp-hr-lbl{font-size:0.36rem;letter-spacing:2px;color:#1e3055;margin-top:1px;font-weight:700}
+.rp.sel .rp-hr-lbl{color:var(--muted)}
+.rp-check{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--border);flex-shrink:0;margin-right:8px;display:flex;align-items:center;justify-content:center;font-size:0.45rem;transition:all 0.12s;color:transparent}
+.rp.sel .rp-check{background:var(--gold);border-color:var(--gold);color:#050810}
+
+/* Commissioner section */
+#commSection{display:none;margin:0 16px 8px;border:1px solid rgba(245,216,0,0.2);border-radius:4px;overflow:hidden;flex-shrink:0;max-height:42vh}
+.comm-head{display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(245,216,0,0.06);border-bottom:1px solid rgba(245,216,0,0.15)}
+.comm-head-title{font-family:var(--bebas);font-size:0.85rem;letter-spacing:3px;color:var(--gold);flex:1}
+.comm-head-count{font-size:0.48rem;letter-spacing:2px;color:var(--muted)}
+.comm-team-row{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid rgba(255,255,255,0.03)}
+.comm-logo{font-size:0.9rem;flex-shrink:0}
+.comm-name{font-family:var(--bebas);font-size:0.8rem;letter-spacing:1px;flex:1}
+.comm-keeper-tag{font-size:0.44rem;letter-spacing:1px;color:var(--gold);flex-shrink:0}
+.comm-no-keeper{font-size:0.44rem;letter-spacing:1px;color:#1e3055;flex-shrink:0}
+.comm-ready-dot{width:7px;height:7px;border-radius:50%;background:#1e3055;flex-shrink:0}
+.comm-ready-dot.on{background:var(--green);box-shadow:0 0 5px var(--green)}
+#commTeamList{overflow-y:auto;max-height:26vh;scrollbar-width:none}
+
+/* Lobby bottom */
+.lobby-bottom{flex-shrink:0;padding:8px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;background:#080f1e}
+.lb-status{display:flex;align-items:center;gap:7px;flex:1;min-width:0}
+.lb-dot{width:8px;height:8px;border-radius:50%;background:#f39c12;flex-shrink:0;animation:pulse 2s ease-in-out infinite}
+.lb-txt{flex:1;min-width:0}
+.lb-title{font-family:var(--bebas);font-size:0.8rem;letter-spacing:1.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb-sub{font-size:0.42rem;letter-spacing:1px;color:var(--muted);margin-top:1px}
+.ready-btn{font-size:0.5rem;letter-spacing:2px;color:var(--teal);background:none;border:1px solid rgba(0,229,200,0.4);padding:8px 14px;cursor:pointer;font-family:var(--barlow);font-weight:700;flex-shrink:0;transition:all 0.15s;border-radius:2px}
+.ready-btn:hover,.ready-btn.on{background:var(--teal);color:var(--bg);border-color:var(--teal)}
+.enter-btn{display:none;font-family:var(--bebas);font-size:0.9rem;letter-spacing:4px;background:rgba(57,255,20,0.08);border:2px solid var(--green);color:var(--green);cursor:pointer;padding:8px 14px;border-radius:3px;animation:glow 1.5s ease-in-out infinite;flex-shrink:0}
+.enter-btn.show{display:block}
+.comm-open-btn{width:calc(100% - 32px);margin:8px 16px;padding:13px;font-family:var(--bebas);font-size:1rem;letter-spacing:5px;background:rgba(57,255,20,0.08);border:2px solid var(--green);color:var(--green);cursor:pointer;border-radius:3px;text-shadow:0 0 10px rgba(57,255,20,0.4)}
+
+/* ── DRAFT BOARD ── */
+#draftScreen{background:var(--bg)}
+#teamTabs{display:flex;overflow-x:auto;background:#030810;border-bottom:1px solid var(--border);flex-shrink:0;scrollbar-width:none}
+#teamTabs::-webkit-scrollbar{display:none}
+.tab-name{font-family:var(--bebas);font-size:0.6rem;letter-spacing:1px;margin-top:2px;white-space:nowrap}
+.tab-dot{width:4px;height:4px;border-radius:1px;background:#1a2d50}
+#draftHdr{flex-shrink:0;display:flex;align-items:stretch;background:#040c1a;border-bottom:1px solid var(--border)}
+.hdr-block{display:flex;flex-direction:column;justify-content:center;padding:8px 14px;border-right:1px solid var(--border)}
+.hdr-label{font-size:0.4rem;letter-spacing:3px;color:var(--muted);font-weight:700}
+.hdr-val{font-family:var(--bebas);font-size:1.6rem;color:var(--white);line-height:1}
+.hdr-val span{font-size:0.9rem;color:var(--muted)}
+#clockBlock{flex:1;display:flex;align-items:center;gap:10px;padding:8px 14px}
+#clockDot{width:12px;height:12px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);flex-shrink:0;animation:pulse 1.5s ease-in-out infinite}
+#clockName{font-family:var(--bebas);font-size:1.2rem;letter-spacing:2px;color:var(--green);line-height:1}
+#draftMain{flex:1;display:grid;grid-template-columns:clamp(160px,25vw,280px) 1fr;overflow:hidden;min-height:0}
+#leftPanel{display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden;background:#080f20}
+.panel-head{display:flex;align-items:center;gap:6px;padding:5px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.ph-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.ph-label{font-size:0.44rem;letter-spacing:3px;color:var(--muted);font-weight:700}
+.ph-count{font-size:0.44rem;letter-spacing:2px;color:var(--muted);margin-left:auto}
+#myPicks{flex:2;overflow:hidden;min-height:0;display:flex;flex-direction:column}
+.my-pick-row{display:flex;align-items:center;gap:5px;padding:0 10px;border-bottom:1px solid rgba(255,255,255,0.02);flex:1;min-height:0}
+.my-pick-num{font-size:0.38rem;letter-spacing:1px;color:var(--muted);width:12px;flex-shrink:0;text-align:right}
+.my-pick-stripe{width:2px;height:14px;flex-shrink:0;border-radius:1px}
+.my-pick-name{font-size:0.72rem;font-weight:700;letter-spacing:0.3px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+.my-pick-name.filled{color:var(--white);font-size:0.78rem}
+.my-pick-pos{font-size:0.38rem;font-weight:700;letter-spacing:1px;color:var(--muted);flex-shrink:0}
+#feed{flex:1;overflow-y:auto;scrollbar-width:none;border-top:1px solid var(--border);min-height:0}
+#feed::-webkit-scrollbar{display:none}
+.feed-row{display:flex;align-items:center;gap:6px;padding:5px 10px;border-bottom:1px solid rgba(255,255,255,0.03);animation:fadeIn 0.3s ease;cursor:pointer}
+.feed-stripe{width:2px;height:28px;flex-shrink:0;border-radius:1px}
+.feed-player{font-size:0.62rem;font-weight:700;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feed-team{font-size:0.42rem;letter-spacing:1px;color:var(--muted)}
+.feed-pick{font-size:0.42rem;letter-spacing:1px;color:var(--muted);flex-shrink:0}
+#rightPanel{display:flex;flex-direction:column;overflow:hidden}
+#searchBar{flex-shrink:0;padding:8px 12px;background:#080f20;border-bottom:1px solid var(--border)}
+#srch{width:100%;background:#060d1f;border:1px solid var(--border);color:var(--white);font-family:var(--barlow);font-size:0.85rem;font-weight:600;padding:7px 12px;outline:none;letter-spacing:0.5px}
+#srch::placeholder{color:var(--muted)}
+#srch:focus{border-color:var(--teal)}
+#sortBar{flex-shrink:0;display:flex;align-items:center;gap:4px;padding:6px 12px;background:#080f20;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+#sortBar::-webkit-scrollbar{display:none}
+.sb{font-family:var(--barlow);font-size:0.6rem;font-weight:700;letter-spacing:1px;padding:4px 10px;background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;flex-shrink:0;transition:all 0.1s;border-radius:2px}
+.sb.on{background:var(--gold);color:#060d1f;border-color:var(--gold)}
+.pos-filter{display:flex;gap:3px;margin-left:auto;flex-shrink:0}
+.pf{font-family:var(--barlow);font-size:0.55rem;font-weight:700;letter-spacing:1px;padding:3px 7px;background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;border-radius:2px;transition:all 0.1s}
+.pf.on{border-color:var(--teal);color:var(--teal)}
+#clockBanner{flex-shrink:0;padding:7px 14px;background:rgba(57,255,20,0.07);border-bottom:1px solid rgba(57,255,20,0.2);display:none;align-items:center;gap:8px}
+#clockBanner .cb-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1s ease-in-out infinite;flex-shrink:0}
+#clockBanner .cb-txt{font-family:var(--bebas);font-size:0.85rem;letter-spacing:2px;color:var(--green)}
+.col-head{display:grid;grid-template-columns:36px 1fr 48px 48px;padding:5px 12px;background:#030810;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5;flex-shrink:0}
+.ch{font-size:0.4rem;letter-spacing:2px;color:var(--muted);font-weight:700;text-align:center}
+.ch.left{text-align:left}
+#poolList{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;min-height:0}
+.prow{display:grid;grid-template-columns:36px 1fr 48px 48px;align-items:center;border-bottom:1px solid rgba(255,255,255,0.03);cursor:pointer;transition:background 0.1s;min-height:52px}
+.prow:hover{background:rgba(255,255,255,0.03)}
+.p-shot{align-self:stretch;overflow:hidden;position:relative;background:#0a1525;display:flex;align-items:center;justify-content:center}
+.p-shot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top center}
+.p-shot-fb{font-size:0.9rem;opacity:0.15;position:relative;z-index:1}
+.p-info{padding:6px 8px;min-width:0}
+.p-name{font-family:var(--bebas);font-size:1rem;letter-spacing:0.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.p-meta{display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap}
+.p-pos{font-size:0.45rem;font-weight:900;letter-spacing:1px;padding:2px 5px;border-radius:2px}
+.p-team-badge{font-size:0.5rem;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:2px}
+.p-stat{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 4px}
+.p-stat-val{font-family:var(--bebas);font-size:1.1rem;line-height:1}
+.p-stat-lbl{font-size:0.38rem;letter-spacing:1px;color:var(--muted);margin-top:1px}
+
+/* Detail drawer */
+#detail{position:fixed;bottom:0;left:0;right:0;background:#06091a;border-top:2px solid var(--border);transform:translateY(100%);transition:transform 0.25s ease;z-index:600;max-height:72vh;overflow-y:auto}
+#detail.open{transform:translateY(0)}
+.detail-head{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:#06091a;z-index:2}
+.detail-shot{width:52px;height:52px;border-radius:50%;overflow:hidden;background:#0a1525;flex-shrink:0;position:relative;display:flex;align-items:center;justify-content:center;font-size:1.2rem}
+.detail-shot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top}
+.detail-name{font-family:var(--bebas);font-size:1.5rem;letter-spacing:2px;line-height:1}
+.detail-sub{display:flex;align-items:center;gap:6px;margin-top:5px}
+.detail-x{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:4px;flex-shrink:0}
+.detail-stats{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--border)}
+.ds{padding:12px 8px;text-align:center;border-right:1px solid var(--border)}
+.ds:last-child{border-right:none}
+.ds-val{font-family:var(--bebas);font-size:1.5rem;line-height:1}
+.ds-lbl{font-size:0.4rem;letter-spacing:2px;color:var(--muted);margin-top:2px}
+.detail-cta{padding:12px 16px}
+#draftBtn{width:100%;padding:14px;font-family:var(--bebas);font-size:1.1rem;letter-spacing:5px;background:rgba(57,255,20,0.08);border:2px solid var(--green);color:var(--green);cursor:pointer;border-radius:3px;text-shadow:0 0 10px rgba(57,255,20,0.4);animation:glow 2s ease-in-out infinite}
+
+/* ── RECAP SCREEN ── */
+#recapScreen{background:var(--bg)}
+.recap-hdr{flex-shrink:0;padding:20px 16px 12px;border-bottom:1px solid var(--border);text-align:center}
+.recap-eyebrow{font-size:0.42rem;letter-spacing:5px;color:var(--muted);font-weight:700}
+.recap-title{font-family:var(--bebas);font-size:2rem;letter-spacing:4px;color:var(--gold);line-height:1;margin-top:4px}
+.recap-sub{font-size:0.48rem;letter-spacing:3px;color:var(--muted);margin-top:6px}
+.recap-tabs{flex-shrink:0;display:flex;border-bottom:2px solid var(--border);background:#040c1a}
+.rtab{flex:1;padding:10px;font-family:var(--bebas);font-size:0.75rem;letter-spacing:2px;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all 0.15s;margin-bottom:-2px}
+.rtab.active{border-bottom-color:var(--gold);color:var(--gold)}
+.rtab:not(.active){color:var(--muted)}
+#recapContent{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.recap-prow{cursor:pointer}
+.recap-prow:hover{background:rgba(255,255,255,0.03)}
+
+/* Pos badge colors */
+.pos-C{background:#e91e6322;color:#f06292;border:1px solid #e91e6344}
+.pos-1B{background:#ff6b3522;color:#ff8c66;border:1px solid #ff6b3544}
+.pos-2B{background:#f5d80022;color:#f5d800;border:1px solid #f5d80044}
+.pos-3B{background:#39ff1422;color:#39ff14;border:1px solid #39ff1444}
+.pos-SS{background:#00e5c822;color:#00e5c8;border:1px solid #00e5c844}
+.pos-LF,.pos-RF,.pos-CF,.pos-OF{background:#e91e6322;color:#f06292;border:1px solid #e91e6344}
+.pos-DH{background:#ff6b3522;color:#ff8c66;border:1px solid #ff6b3544}
+
+/* Toast */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--gold);color:#060d1f;font-family:var(--bebas);font-size:0.9rem;letter-spacing:2px;padding:8px 20px;border-radius:3px;opacity:0;transition:all 0.3s;z-index:700;pointer-events:none;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Player modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:500;align-items:flex-end;justify-content:center}
+.modal-bg.show{display:flex}
+.modal{width:100%;max-width:480px;background:#06091a;border-top:2px solid var(--border);border-radius:12px 12px 0 0;overflow:hidden;animation:slideUp 0.22s ease;max-height:88vh;overflow-y:auto}
+.modal-hero{position:relative;overflow:hidden;height:180px;background:#0a0e20}
+.modal-hero img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+.modal-hero-grad{position:absolute;bottom:0;left:0;right:0;height:100px;background:linear-gradient(transparent,#06091a)}
+.modal-hero-x{position:absolute;top:12px;right:12px;z-index:10;background:rgba(0,0,0,0.5);border:none;color:#fff;width:30px;height:30px;border-radius:50%;font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.modal-hero-info{position:absolute;bottom:0;left:0;right:0;padding:12px 16px}
+.modal-name{font-family:var(--bebas);font-size:1.6rem;letter-spacing:2px;color:#fff;line-height:1;text-shadow:0 2px 12px rgba(0,0,0,0.9)}
+.modal-badges{display:flex;gap:6px;margin-top:5px}
+.badge{font-size:0.48rem;letter-spacing:2px;font-weight:700;padding:2px 7px;border-radius:2px}
+.modal-stats{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--border)}
+.ms{padding:12px 6px;text-align:center;border-right:1px solid var(--border)}
+.ms:last-child{border-right:none}
+.ms-val{font-family:var(--bebas);font-size:1.4rem;line-height:1}
+.ms-lbl{font-size:0.4rem;letter-spacing:2px;color:var(--muted);margin-top:2px}
+.modal-cta{padding:12px 16px}
+.keep-btn{width:100%;padding:14px;font-family:var(--bebas);font-size:1rem;letter-spacing:4px;background:rgba(245,216,0,0.07);border:2px solid rgba(245,216,0,0.35);color:var(--gold);cursor:pointer;border-radius:3px;transition:all 0.15s}
+.keep-btn:hover,.keep-btn.active{background:var(--gold);color:#06091a;border-color:var(--gold)}
+
+@media(min-width:768px){
+  #draftMain{grid-template-columns:clamp(200px,22vw,300px) 1fr}
+  .p-name{font-size:1.1rem}
+  .detail-name{font-size:1.8rem}
+}
+</style>
+</head>
+<body>
+
+<!-- SCREEN 1: CLAIM -->
+<div class="screen active" id="claimScreen">
+  <div class="claim-hdr">
+    <div class="claim-eyebrow">⚾ BDO REDRAFT 2026</div>
+    <div class="claim-title">CLAIM YOUR TEAM</div>
+    <div class="claim-sub">SELECT YOUR TEAM TO ENTER THE DRAFT LOBBY</div>
+  </div>
+  <div class="claim-list" id="claimList"></div>
+</div>
+
+<!-- SCREEN 2: LOBBY -->
+<div class="screen" id="lobbyScreen">
+  <div class="lobby-hdr">
+    <div class="lh-left">
+      <div class="lh-eyebrow">⚾ BDO REDRAFT 2026 · LOBBY</div>
+      <div class="lh-name" id="lhName">—</div>
+      <div class="lh-rec" id="lhRec">—</div>
+    </div>
+    <div class="lh-picks">
+      <div class="lh-pick-num" id="lhPicks">—</div>
+      <div class="lh-pick-lbl">YOUR PICKS</div>
+    </div>
+  </div>
+  <div class="keeper-bar">
+    <div class="kb-label">KEEPER</div>
+    <div class="kb-divider"></div>
+    <div class="kb-shot" id="kbShot"><span>⚾</span></div>
+    <div id="kbName" class="kb-none">SELECT BELOW · OPTIONAL</div>
+    <div class="kb-hint">REPLACES PICK #1</div>
+  </div>
+  <div class="lobby-roster" id="lobbyRoster"></div>
+  <div id="commSection">
+    <div class="comm-head">
+      <div style="font-size:0.9rem">⚙️</div>
+      <div class="comm-head-title">COMMISSIONER VIEW</div>
+      <div class="comm-head-count" id="commReadyCount">0/12 READY</div>
+    </div>
+    <div id="commTeamList" style="overflow-y:auto;max-height:26vh;scrollbar-width:none"></div>
+    <button class="comm-open-btn" id="commOpenBtn" onclick="commOpenDraft()">⚡ OPEN THE DRAFT</button>
+  </div>
+  <div class="lobby-bottom">
+    <div class="lb-status">
+      <div class="lb-dot" id="lbDot"></div>
+      <div class="lb-txt">
+        <div class="lb-title" id="lbTitle">WAITING FOR COMMISSIONER</div>
+        <div class="lb-sub" id="lbSub">Draft opens when the commissioner is ready</div>
+      </div>
+    </div>
+    <button class="enter-btn" id="enterBtn" onclick="enterDraft()">ENTER DRAFT</button>
+    <button class="ready-btn" id="readyBtn">READY</button>
+  </div>
+</div>
+
+<!-- SCREEN 3: DRAFT BOARD -->
+<div class="screen" id="draftScreen">
+  <div id="teamTabs"></div>
+  <div id="draftHdr">
+    <div class="hdr-block">
+      <div class="hdr-label">ROUND</div>
+      <div class="hdr-val" id="hdrRound">1<span>/10</span></div>
+    </div>
+    <div class="hdr-block">
+      <div class="hdr-label">PICK</div>
+      <div class="hdr-val" id="hdrPick">1<span>/120</span></div>
+    </div>
+    <div id="clockBlock">
+      <div id="clockDot"></div>
+      <div>
+        <div style="font-size:0.4rem;letter-spacing:3px;color:rgba(57,255,20,0.6);font-weight:700">ON THE CLOCK</div>
+        <div id="clockName">—</div>
+      </div>
+    </div>
+  </div>
+  <div id="draftMain">
+    <div id="leftPanel">
+      <div class="panel-head">
+        <div class="ph-dot" id="myDot" style="background:var(--gold)"></div>
+        <div class="ph-label">YOUR TEAM</div>
+        <div class="ph-count" id="myCount">0/10</div>
+      </div>
+      <div id="myPicks"></div>
+      <div class="panel-head" style="border-top:1px solid var(--border)">
+        <div class="ph-dot" style="background:#e74c3c;animation:pulse 2s ease-in-out infinite"></div>
+        <div class="ph-label">LIVE PICKS</div>
+      </div>
+      <div id="feed"><div style="padding:10px 12px;font-size:0.5rem;letter-spacing:2px;color:var(--muted)">NO PICKS YET</div></div>
+    </div>
+    <div id="rightPanel">
+      <div id="searchBar"><input id="srch" type="text" placeholder="Search by name or team..." oninput="renderPool()"></div>
+      <div id="sortBar">
+        <button class="sb on" data-sort="homeRuns">HR</button>
+        <button class="sb" data-sort="mostHR">MOST</button>
+        <button class="sb" data-sort="hrPerMonth">HR/M</button>
+        <button class="sb" data-sort="slg">SLG</button>
+        <button class="sb" data-sort="ops">OPS</button>
+        <button class="sb" data-sort="rbi">RBI</button>
+        <button class="sb" data-sort="stolenBases">SB</button>
+        <div class="pos-filter">
+          <button class="pf on" data-pos="ALL">ALL</button>
+          <button class="pf" data-pos="C">C</button>
+          <button class="pf" data-pos="1B">1B</button>
+          <button class="pf" data-pos="2B">2B</button>
+          <button class="pf" data-pos="3B">3B</button>
+          <button class="pf" data-pos="SS">SS</button>
+          <button class="pf" data-pos="OF">OF</button>
+          <button class="pf" data-pos="DH">DH</button>
+        </div>
+      </div>
+      <div id="clockBanner"><div class="cb-dot"></div><div class="cb-txt">YOUR PICK — TAP A PLAYER</div></div>
+      <div class="col-head">
+        <div class="ch">#</div>
+        <div class="ch left">PLAYER</div>
+        <div class="ch" id="col1Head">HR</div>
+        <div class="ch" id="col2Head">SLG</div>
+      </div>
+      <div id="poolList"></div>
+    </div>
+  </div>
+  <div id="detail">
+    <div class="detail-head">
+      <div class="detail-shot"><div style="font-size:1.2rem;opacity:0.2">⚾</div><img id="dShot" src="" alt="" onerror="this.style.display='none'"></div>
+      <div><div class="detail-name" id="dName"></div><div class="detail-sub" id="dSub"></div></div>
+      <button class="detail-x" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="detail-stats" id="dStats"></div>
+    <div class="detail-cta"><button id="draftBtn" onclick="draftCurrent()">· DRAFT THIS PLAYER ·</button></div>
+  </div>
+</div>
+
+<!-- SCREEN 4: RECAP -->
+<div class="screen" id="recapScreen">
+  <div class="recap-hdr">
+    <div class="recap-eyebrow">BDO REDRAFT 2026</div>
+    <div class="recap-title">DRAFT COMPLETE</div>
+    <div class="recap-sub" id="recapSub">LEAGUE LOBBY WILL UPDATE AGAIN SOON</div>
+  </div>
+  <div class="recap-tabs">
+    <button class="rtab active" onclick="showRecapTab('myteam')">MY TEAM</button>
+    <button class="rtab" onclick="showRecapTab('all')">ALL TEAMS</button>
+  </div>
+  <div id="recapContent"></div>
+</div>
+
+<!-- LOBBY PLAYER MODAL -->
+<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-hero">
+      <img id="modalImg" src="" onerror="this.style.display='none'" alt="">
+      <div class="modal-hero-grad"></div>
+      <button class="modal-hero-x" onclick="closeModal()">✕</button>
+      <div class="modal-hero-info">
+        <div class="modal-name" id="modalName"></div>
+        <div class="modal-badges" id="modalBadges"></div>
+      </div>
+    </div>
+    <div class="modal-stats" id="modalStats"></div>
+    <div class="modal-cta"><button class="keep-btn" id="keepBtn" onclick="toggleKeeper()"></button></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══ MASTER DATA ══
+const DRAFT_ORDER = [
+  {slot:0,  name:'Tighe',   teamName:'Tighe',                logo:'🔥', color:'#e74c3c', rec:'12-2'},
+  {slot:1,  name:'Jordan',  teamName:'Jordan',               logo:'🍺', color:'#00bcd4', rec:'11-3'},
+  {slot:2,  name:'Chandler',teamName:'Ghost of Mister Ed',   logo:'🐴', color:'#f5d800', rec:'10-4'},
+  {slot:3,  name:'Conner',  teamName:'Conner',               logo:'⚡', color:'#f5d800', rec:'9-5'},
+  {slot:4,  name:'Nick',    teamName:'Nick',                 logo:'🏆', color:'#ff9800', rec:'8-6'},
+  {slot:5,  name:'Jim',     teamName:'Jim',                  logo:'🚀', color:'#ff9800', rec:'7-7'},
+  {slot:6,  name:'Alec',    teamName:'Alec',                 logo:'🎯', color:'#00e676', rec:'7-7'},
+  {slot:7,  name:'Pat',     teamName:'Los Tejas Longhornés', logo:'🤘', color:'#ff6b35', rec:'6-8'},
+  {slot:8,  name:'Zak',     teamName:'Màs Plakatas',         logo:'🌐', color:'#e91e63', rec:'5-9'},
+  {slot:9,  name:'Peyton',  teamName:'Peyton',               logo:'🎭', color:'#9c27b0', rec:'4-10'},
+  {slot:10, name:'Cody',    teamName:'Cody',                 logo:'🦅', color:'#2196f3', rec:'3-11'},
+  {slot:11, name:'Greg',    teamName:'Greg',                 logo:'👊', color:'#4caf50', rec:'2-12'},
+];
+const N_TEAMS=12, N_ROUNDS=10, N_PICKS=120;
+const COMMISSIONER_SLOT=2; // Chandler
+
+// Snake pick info
+function pickInfo(i){
+  const r=Math.floor(i/N_TEAMS), s=i%N_TEAMS;
+  return{round:r+1,pickNum:i+1,teamIdx:r%2===0?s:(N_TEAMS-1-s)};
+}
+
+// Each team's round 1 pick slot index
+function getRound1PickIdx(slot){
+  for(let i=0;i<N_TEAMS;i++){if(pickInfo(i).teamIdx===slot)return i;}
+  return slot;
+}
+
+// Team picks (which overall pick numbers belong to each slot)
+function getTeamPickNums(slot){
+  const picks=[];
+  for(let i=0;i<N_PICKS;i++){if(pickInfo(i).teamIdx===slot)picks.push(pickInfo(i).pickNum);}
+  return picks;
+}
+
+const ROSTERS = {
+  0:[ // Tighe
+    {name:'Shohei Ohtani',    pos:'DH',mlbTeam:'LAD',mlbId:660271,hr:22},
+    {name:'Randy Arozarena',  pos:'LF',mlbTeam:'SEA',mlbId:668227,hr:11},
+    {name:'Francisco Lindor', pos:'SS',mlbTeam:'NYM',mlbId:596019,hr:5},
+    {name:'Jazz Chisholm Jr.',pos:'3B',mlbTeam:'NYY',mlbId:665862,hr:13},
+    {name:'Christian Yelich', pos:'LF',mlbTeam:'MIL',mlbId:592885,hr:6},
+    {name:'Andy Pages',       pos:'RF',mlbTeam:'LAD',mlbId:681624,hr:17},
+    {name:'Corbin Carroll',   pos:'CF',mlbTeam:'ARI',mlbId:682998,hr:13},
+    {name:'Bo Bichette',      pos:'3B',mlbTeam:'NYM',mlbId:666182,hr:10},
+    {name:'Jorge Polanco',    pos:'1B',mlbTeam:'NYM',mlbId:593871,hr:1},
+    {name:'Addison Barger',   pos:'3B',mlbTeam:'TOR',mlbId:680718,hr:0},
+  ],
+  1:[ // Jordan
+    {name:'Pete Crow-Armstrong',pos:'CF',mlbTeam:'CHC',mlbId:691718,hr:21},
+    {name:'Sal Stewart',        pos:'1B',mlbTeam:'CIN',mlbId:694197,hr:19},
+    {name:'J.T. Realmuto',      pos:'C', mlbTeam:'PHI',mlbId:592663,hr:7},
+    {name:'Alex Bregman',       pos:'3B',mlbTeam:'CHC',mlbId:608324,hr:9},
+    {name:'Bobby Witt Jr.',     pos:'SS',mlbTeam:'KC', mlbId:677951,hr:13},
+    {name:'Wyatt Langford',     pos:'LF',mlbTeam:'TEX',mlbId:694671,hr:9},
+    {name:'Yandy Diaz',         pos:'1B',mlbTeam:'TB', mlbId:650490,hr:13},
+    {name:'William Contreras',  pos:'C', mlbTeam:'MIL',mlbId:661388,hr:9},
+    {name:'Kyle Tucker',        pos:'RF',mlbTeam:'HOU',mlbId:663656,hr:7},
+    {name:'Jeff McNeil',        pos:'2B',mlbTeam:'OAK',mlbId:643446,hr:3},
+  ],
+  2:[ // Chandler - Ghost of Mister Ed
+    {name:'Eugenio Suarez',   pos:'DH',mlbTeam:'CIN',mlbId:553993,hr:11},
+    {name:'Kazuma Okamoto',   pos:'1B',mlbTeam:'TOR',mlbId:672960,hr:22},
+    {name:'Jackson Merrill',  pos:'CF',mlbTeam:'SD', mlbId:701538,hr:10},
+    {name:'Michael Harris II',pos:'CF',mlbTeam:'ATL',mlbId:671739,hr:16},
+    {name:'Kevin McGonigle',  pos:'SS',mlbTeam:'DET',mlbId:805808,hr:8},
+    {name:'Tyler Soderstrom', pos:'LF',mlbTeam:'OAK',mlbId:691016,hr:14},
+    {name:'Bryce Harper',     pos:'1B',mlbTeam:'PHI',mlbId:547180,hr:20},
+    {name:'Adolis Garcia',    pos:'RF',mlbTeam:'TEX',mlbId:666969,hr:7},
+    {name:'Ronald Acuna Jr.', pos:'RF',mlbTeam:'ATL',mlbId:660670,hr:7},
+    {name:'Luis Robert Jr.',  pos:'CF',mlbTeam:'NYM',mlbId:673357,hr:2},
+  ],
+  3:[ // Conner
+    {name:'Kyle Stowers',     pos:'LF',mlbTeam:'BAL',mlbId:680757,hr:12},
+    {name:'Josh Bell',        pos:'1B',mlbTeam:'MIN',mlbId:605137,hr:13},
+    {name:'George Springer',  pos:'CF',mlbTeam:'TOR',mlbId:543807,hr:9},
+    {name:'Zach Neto',        pos:'SS',mlbTeam:'LAA',mlbId:687263,hr:19},
+    {name:'Aaron Judge',      pos:'RF',mlbTeam:'NYY',mlbId:592450,hr:17},
+    {name:'Ketel Marte',      pos:'2B',mlbTeam:'ARI',mlbId:606466,hr:17},
+    {name:'Julio Rodriguez',  pos:'CF',mlbTeam:'SEA',mlbId:677594,hr:14},
+    {name:'Will Smith',       pos:'C', mlbTeam:'LAD',mlbId:669257,hr:6},
+    {name:'Lawrence Butler',  pos:'LF',mlbTeam:'OAK',mlbId:671732,hr:5},
+    {name:'Trevor Story',     pos:'SS',mlbTeam:'BOS',mlbId:596115,hr:3},
+  ],
+  4:[ // Nick
+    {name:'Spencer Torkelson',pos:'1B',mlbTeam:'DET',mlbId:679529,hr:16},
+    {name:'Freddie Freeman',  pos:'1B',mlbTeam:'LAD',mlbId:518692,hr:15},
+    {name:'Ozzie Albies',     pos:'2B',mlbTeam:'ATL',mlbId:645277,hr:14},
+    {name:'Nick Kurtz',       pos:'1B',mlbTeam:'OAK',mlbId:701762,hr:20},
+    {name:'Austin Riley',     pos:'3B',mlbTeam:'ATL',mlbId:663586,hr:9},
+    {name:'Munetaka Murakami',pos:'1B',mlbTeam:'STL',mlbId:673490,hr:20},
+    {name:'Corey Seager',     pos:'SS',mlbTeam:'TEX',mlbId:608369,hr:10},
+    {name:'Kyle Manzardo',    pos:'1B',mlbTeam:'CLE',mlbId:700932,hr:10},
+    {name:'Giancarlo Stanton',pos:'DH',mlbTeam:'NYY',mlbId:519317,hr:3},
+    {name:'Matt Chapman',     pos:'3B',mlbTeam:'SF', mlbId:656305,hr:7},
+  ],
+  5:[ // Jim
+    {name:'Chase DeLauter',   pos:'RF',mlbTeam:'CLE',mlbId:800050,hr:11},
+    {name:'Pete Alonso',      pos:'1B',mlbTeam:'BAL',mlbId:624413,hr:21},
+    {name:'Riley Greene',     pos:'LF',mlbTeam:'DET',mlbId:682985,hr:13},
+    {name:'Shea Langeliers',  pos:'C', mlbTeam:'OAK',mlbId:669127,hr:21},
+    {name:'Taylor Ward',      pos:'RF',mlbTeam:'LAA',mlbId:621493,hr:6},
+    {name:'Salvador Perez',   pos:'C', mlbTeam:'KC', mlbId:521692,hr:11},
+    {name:'Wilyer Abreu',     pos:'RF',mlbTeam:'BOS',mlbId:677800,hr:11},
+    {name:'Jac Caglianone',   pos:'1B',mlbTeam:'KC', mlbId:695506,hr:15},
+    {name:'Roman Anthony',    pos:'LF',mlbTeam:'BOS',mlbId:701350,hr:1},
+    {name:'Oneil Cruz',       pos:'CF',mlbTeam:'PIT',mlbId:665833,hr:14},
+  ],
+  6:[ // Alec
+    {name:'Rafael Devers',    pos:'3B',mlbTeam:'BOS',mlbId:646240,hr:19},
+    {name:'Seiya Suzuki',     pos:'RF',mlbTeam:'CHC',mlbId:673548,hr:15},
+    {name:'Yainer Diaz',      pos:'C', mlbTeam:'HOU',mlbId:673237,hr:6},
+    {name:'Trent Grisham',    pos:'CF',mlbTeam:'NYY',mlbId:663757,hr:10},
+    {name:'Jake Burger',      pos:'3B',mlbTeam:'TEX',mlbId:669394,hr:16},
+    {name:'Alec Burleson',    pos:'RF',mlbTeam:'STL',mlbId:676475,hr:15},
+    {name:'Brice Turang',     pos:'2B',mlbTeam:'MIL',mlbId:668930,hr:14},
+    {name:'Gunnar Henderson', pos:'SS',mlbTeam:'BAL',mlbId:683002,hr:17},
+    {name:'Cal Raleigh',      pos:'C', mlbTeam:'SEA',mlbId:663728,hr:9},
+    {name:'Mookie Betts',     pos:'RF',mlbTeam:'LAD',mlbId:605141,hr:11},
+  ],
+  7:[ // Pat - Los Tejas Longhornés
+    {name:'Jordan Walker',    pos:'RF',mlbTeam:'STL',mlbId:691023,hr:22},
+    {name:'Jake Bauers',      pos:'1B',mlbTeam:'MIL',mlbId:641343,hr:18},
+    {name:'Mickey Moniak',    pos:'RF',mlbTeam:'COL',mlbId:666160,hr:15},
+    {name:'CJ Abrams',        pos:'SS',mlbTeam:'WSH',mlbId:682928,hr:20},
+    {name:'Drake Baldwin',    pos:'C', mlbTeam:'ATL',mlbId:686948,hr:15},
+    {name:'Dalton Rushing',   pos:'C', mlbTeam:'LAD',mlbId:687221,hr:10},
+    {name:'Carter Jensen',    pos:'C', mlbTeam:'KC', mlbId:695600,hr:13},
+    {name:'Spencer Steer',    pos:'1B',mlbTeam:'CIN',mlbId:668715,hr:14},
+    {name:'Gary Sanchez',     pos:'C', mlbTeam:'MIL',mlbId:596142,hr:8},
+    {name:'Francisco Alvarez',pos:'C', mlbTeam:'NYM',mlbId:682626,hr:9},
+  ],
+  8:[ // Zak - Màs Plakatas
+    {name:'Matt Olson',           pos:'1B',mlbTeam:'ATL',mlbId:621566,hr:25},
+    {name:'Dansby Swanson',       pos:'SS',mlbTeam:'CHC',mlbId:621020,hr:16},
+    {name:'Vladimir Guerrero Jr.',pos:'1B',mlbTeam:'TOR',mlbId:665489,hr:6},
+    {name:'Jo Adell',             pos:'LF',mlbTeam:'LAA',mlbId:666176,hr:13},
+    {name:'Willy Adames',         pos:'SS',mlbTeam:'SF', mlbId:642715,hr:15},
+    {name:'Christian Walker',     pos:'1B',mlbTeam:'ARI',mlbId:572233,hr:20},
+    {name:'Brandon Lowe',         pos:'2B',mlbTeam:'PIT',mlbId:664040,hr:21},
+    {name:'Kerry Carpenter',      pos:'LF',mlbTeam:'DET',mlbId:681481,hr:13},
+    {name:'Vinnie Pasquantino',   pos:'1B',mlbTeam:'KC', mlbId:686469,hr:6},
+    {name:'Josh Naylor',          pos:'1B',mlbTeam:'SEA',mlbId:647304,hr:8},
+  ],
+  9:[ // Peyton
+    {name:'Manny Machado',    pos:'3B',mlbTeam:'SD', mlbId:592518,hr:19},
+    {name:'Heliot Ramos',     pos:'RF',mlbTeam:'SF', mlbId:671218,hr:8},
+    {name:'Kyle Schwarber',   pos:'LF',mlbTeam:'PHI',mlbId:656941,hr:32},
+    {name:'Colson Montgomery',pos:'SS',mlbTeam:'CWS',mlbId:695657,hr:23},
+    {name:'Elly De La Cruz',  pos:'SS',mlbTeam:'CIN',mlbId:682829,hr:15},
+    {name:'Michael Busch',    pos:'1B',mlbTeam:'CHC',mlbId:683737,hr:11},
+    {name:'Brent Rooker',     pos:'DH',mlbTeam:'OAK',mlbId:667670,hr:10},
+    {name:'Ian Happ',         pos:'LF',mlbTeam:'CHC',mlbId:664023,hr:17},
+    {name:'Fernando Tatis Jr.',pos:'RF',mlbTeam:'SD',mlbId:665487,hr:5},
+    {name:'Moises Ballesteros',pos:'C',mlbTeam:'CHC',mlbId:694208,hr:6},
+  ],
+  10:[ // Cody
+    {name:'Ben Rice',         pos:'1B',mlbTeam:'NYY',mlbId:700250,hr:29},
+    {name:'Yordan Alvarez',   pos:'DH',mlbTeam:'HOU',mlbId:670541,hr:31},
+    {name:'Juan Soto',        pos:'RF',mlbTeam:'NYM',mlbId:665742,hr:21},
+    {name:'Samuel Basallo',   pos:'C', mlbTeam:'BAL',mlbId:694212,hr:16},
+    {name:'Teoscar Hernandez',pos:'RF',mlbTeam:'LAD',mlbId:606192,hr:8},
+    {name:'Jackson Chourio',  pos:'CF',mlbTeam:'MIL',mlbId:694192,hr:13},
+    {name:'Mike Trout',       pos:'CF',mlbTeam:'LAA',mlbId:545361,hr:18},
+    {name:'Jorge Soler',      pos:'DH',mlbTeam:'LAA',mlbId:624585,hr:11},
+    {name:'Daulton Varsho',   pos:'CF',mlbTeam:'TOR',mlbId:662139,hr:7},
+    {name:'Andrew Vaughn',    pos:'1B',mlbTeam:'MIL',mlbId:683734,hr:2},
+  ],
+  11:[ // Greg
+    {name:'James Wood',       pos:'CF',mlbTeam:'WSH',mlbId:695578,hr:28},
+    {name:'Junior Caminero',  pos:'3B',mlbTeam:'TB', mlbId:691406,hr:28},
+    {name:'Willson Contreras',pos:'1B',mlbTeam:'BOS',mlbId:575929,hr:20},
+    {name:'Hunter Goodman',   pos:'C', mlbTeam:'COL',mlbId:696100,hr:27},
+    {name:'Marcell Ozuna',    pos:'DH',mlbTeam:'PIT',mlbId:542303,hr:8},
+    {name:'Byron Buxton',     pos:'CF',mlbTeam:'MIN',mlbId:621439,hr:25},
+    {name:'Max Muncy',        pos:'3B',mlbTeam:'LAD',mlbId:571970,hr:17},
+    {name:'Dillon Dingler',   pos:'C', mlbTeam:'DET',mlbId:693307,hr:19},
+    {name:'Jose Ramirez',     pos:'3B',mlbTeam:'CLE',mlbId:608070,hr:10},
+    {name:'Cody Bellinger',   pos:'CF',mlbTeam:'CHC',mlbId:641355,hr:11},
+  ],
+}
+
+const MLB_COLORS={
+  NYY:['#132448','#C4CED4'],LAD:['#005A9C','#fff'],PHI:['#E3002B','#fff'],
+  ATL:['#CE1141','#fff'],HOU:['#002D62','#EB6E1F'],SEA:['#0C2C56','#00C7B1'],
+  BAL:['#DF4601','#fff'],BOS:['#BD3039','#fff'],NYM:['#002D72','#FF5910'],
+  CIN:['#C6011F','#fff'],TOR:['#134A8E','#E8291C'],KC:['#004687','#BD9B60'],
+  CLE:['#E31937','#fff'],MIN:['#D31145','#fff'],STL:['#C41E3A','#fff'],
+  MIL:['#12284B','#FFC52F'],OAK:['#003831','#EFB21E'],CHC:['#0E3386','#CC3433'],
+  SF:['#FD5A1E','#fff'],TB:['#092C5C','#8FBCE6'],DET:['#0C2340','#FA4616'],
+  LAA:['#BA0021','#fff'],WSH:['#AB0003','#fff'],SD:['#2F241D','#FFC425'],
+  TEX:['#003278','#fff'],PIT:['#FDB827','#000'],ARI:['#A71930','#E3D4AD'],
+  MIA:['#00A3E0','#EF3340'],CWS:['#27251F','#C4CED4'],COL:['#33006F','#C4CED4'],
+};
+const getTeamBg=t=>(MLB_COLORS[t]||['#1e3055','#fff'])[0];
+const getTeamFg=t=>(MLB_COLORS[t]||['#1e3055','#fff'])[1];
+const imgUrl=id=>`https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_213,q_auto:best/v1/people/${id}/headshot/67/current`;
+const heroUrl=id=>`https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:action:hero:current.png/w_800,q_auto:best/v1/people/${id}/action/hero/current`;
+
+// ══ STATE ══
+let mySlot = null; // which team this user claimed
+let keeperId = null; // roster player name kept
+let myReady = false;
+let draftOpen = false;
+let players = []; // full draft pool
+let picks = new Array(N_PICKS).fill(null);
+let curPick = 0;
+let sortStat = 'homeRuns', posFilter = 'ALL';
+let _currentDetailPlayer = null;
+let _filteredPlayers = [];
+let recapPickMap = {};
+
+// Comm state
+let commReadyData = new Set();
+let commKeeperData = {};
+
+// ══ JSONBIN ══
+async function jbGet(){
+  try{
+    const r=await fetch('/api/jb',{method:'GET'});
+    return r.ok?await r.json():null;
+  }catch(e){console.error('jbGet:',e.message);return null;}
+}
+async function jbPut(d){
+  try{
+    await fetch('/api/jb',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+  }catch(e){console.error('jbPut:',e.message);}
+}
+
+// ══ SCREEN 1: CLAIM ══
+function buildClaimScreen(){
+  const data = jbState || {};
+  const claims = (data.claims)||{};
+  document.getElementById('claimList').innerHTML = DRAFT_ORDER.map(t=>{
+    const claimedBy = claims[t.slot];
+    const isMine = claimedBy === t.slot;
+    const isTaken = claimedBy !== undefined;
+    const picks = getTeamPickNums(t.slot);
+    const p1 = picks[0], p2 = picks[1];
+    return `<div class="team-card${isMine?' mine':isTaken?' claimed':''}" onclick="claimTeam(${t.slot})">
+      <div class="tc-logo">${t.logo}</div>
+      <div class="tc-info">
+        <div class="tc-name" style="color:${t.color}">${t.teamName}</div>
+        <div class="tc-rec">${t.rec} · 2025 SEASON</div>
+        <div class="tc-pick">PICKS #${p1} &amp; #${p2}</div>
+      </div>
+      <div class="tc-status ${isMine?'mine':isTaken?'taken':'open'}">${isMine?'YOU':isTaken?'TAKEN':'OPEN'}</div>
+    </div>`;
+  }).join('');
+}
+
+async function claimTeam(slot){
+  const state = await jbGet() || {claims:{}};
+  if(!state.claims) state.claims={};
+  if(state.claims[slot] !== undefined){ showToast('Already claimed!'); return; }
+  state.claims[slot] = slot;
+  await jbPut(state);
+  mySlot = slot;
+  jbState = state;
+  enterLobby();
+}
+
+// ══ SCREEN 2: LOBBY ══
+function enterLobby(){
+  if(mySlot===null) return;
+  const t = DRAFT_ORDER[mySlot];
+  const roster = ROSTERS[mySlot];
+  const picks = getTeamPickNums(mySlot);
+
+  document.getElementById('lhName').textContent = t.teamName.toUpperCase();
+  document.getElementById('lhRec').textContent = `${t.logo} · ${t.rec} · 2025 SEASON`;
+  document.getElementById('lhPicks').textContent = `#${picks[0]} · #${picks[1]}`;
+  document.getElementById('lhName').style.color = t.color;
+
+  buildLobbyRoster();
+
+  if(mySlot === COMMISSIONER_SLOT){
+    document.getElementById('commSection').style.display = 'block';
+    buildCommSection();
+  }
+
+  showScreen('lobbyScreen');
+  setInterval(pollLobby, 3000);
+}
+
+function buildLobbyRoster(){
+  const roster = ROSTERS[mySlot];
+  const t = DRAFT_ORDER[mySlot];
+  const maxHR = Math.max(...roster.map(p=>p.hr),1);
+  document.getElementById('lobbyRoster').innerHTML = roster.map((p,i)=>{
+    const sel = keeperId===p.name;
+    return `<div class="rp${sel?' sel':''}" onclick="openModal(${i})">
+      <div class="rp-stripe"></div>
+      <div class="rp-shot">
+        <div class="rp-shot-fb">⚾</div>
+        <img src="${imgUrl(p.mlbId)}" onerror="this.style.display='none'">
+      </div>
+      <div class="rp-name">${p.name}</div>
+      <div class="rp-hr-block">
+        <div class="rp-hr-num">${p.hr}</div>
+        <div class="rp-hr-lbl">HR</div>
+      </div>
+      <div class="rp-check">${sel?'✓':''}</div>
+    </div>`;
+  }).join('');
+}
+
+// Lobby player modal
+let activeRosterIdx = null;
+function openModal(idx){
+  const p = ROSTERS[mySlot][idx];
+  activeRosterIdx = idx;
+  const tb=getTeamBg(p.mlbTeam), tf=getTeamFg(p.mlbTeam);
+  const heroImg = document.getElementById('modalImg');
+  heroImg.style.display='block';
+  heroImg.src = heroUrl(p.mlbId);
+  heroImg.onerror = function(){ this.src=imgUrl(p.mlbId); this.onerror=function(){this.style.display='none';}; };
+  document.getElementById('modalName').textContent = p.name;
+  document.getElementById('modalBadges').innerHTML =
+    `<span class="badge" style="background:${tb};color:${tf}">${p.mlbTeam}</span>
+     <span class="badge p-pos pos-${p.pos}">${p.pos}</span>`;
+  document.getElementById('modalStats').innerHTML =
+    `<div class="ms"><div class="ms-val" style="color:var(--gold)">${p.hr}</div><div class="ms-lbl">HR</div></div>
+     <div class="ms"><div class="ms-val">${p.pos}</div><div class="ms-lbl">POS</div></div>
+     <div class="ms"><div class="ms-val">${p.mlbTeam}</div><div class="ms-lbl">TEAM</div></div>`;
+  const kb = document.getElementById('keepBtn');
+  kb.textContent = keeperId===p.name ? '✓ KEEPING THIS PLAYER' : '+ KEEP THIS PLAYER';
+  kb.classList.toggle('active', keeperId===p.name);
+  document.getElementById('modalBg').classList.add('show');
+}
+function closeModal(){ document.getElementById('modalBg').classList.remove('show'); activeRosterIdx=null; }
+function toggleKeeper(){
+  if(activeRosterIdx===null) return;
+  const p = ROSTERS[mySlot][activeRosterIdx];
+  keeperId = keeperId===p.name ? null : p.name;
+  updateKeeperBar();
+  buildLobbyRoster();
+  const kb = document.getElementById('keepBtn');
+  kb.textContent = keeperId===p.name ? '✓ KEEPING THIS PLAYER' : '+ KEEP THIS PLAYER';
+  kb.classList.toggle('active', keeperId===p.name);
+  // Sync to JSONBin
+  setTimeout(async function(){
+    try{
+      const state = await jbGet(); if(!state) return;
+      if(!state.lobby) state.lobby={};
+      if(!state.lobby.keepers) state.lobby.keepers={};
+      if(keeperId) state.lobby.keepers[mySlot]=keeperId;
+      else delete state.lobby.keepers[mySlot];
+      await jbPut(state);
+      if(mySlot===COMMISSIONER_SLOT) buildCommSection();
+    }catch(e){}
+  },100);
+}
+function updateKeeperBar(){
+  const shot=document.getElementById('kbShot'), name=document.getElementById('kbName');
+  if(keeperId){
+    const p=ROSTERS[mySlot].find(r=>r.name===keeperId);
+    shot.innerHTML=`<img src="${imgUrl(p.mlbId)}" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;object-position:top">`;
+    name.textContent=keeperId; name.className='kb-name';
+  } else {
+    shot.innerHTML='<span>⚾</span>';
+    name.textContent='SELECT BELOW · OPTIONAL'; name.className='kb-none';
+  }
+}
+
+// Commissioner section
+function buildCommSection(){
+  const readyCount=commReadyData.size;
+  document.getElementById('commReadyCount').textContent=`${readyCount}/12 READY`;
+  document.getElementById('commTeamList').innerHTML=DRAFT_ORDER.map(t=>{
+    const isReady=commReadyData.has(t.slot);
+    const keeper=commKeeperData[t.slot]||null;
+    return `<div class="comm-team-row">
+      <div class="comm-logo">${t.logo}</div>
+      <div class="comm-name" style="color:${t.color}">${t.name}</div>
+      ${keeper?`<div class="comm-keeper-tag">🔒 ${keeper.split(' ').slice(-1)[0]}</div>`:'<div class="comm-no-keeper">NO KEEPER</div>'}
+      <div class="comm-ready-dot${isReady?' on':''}"></div>
+    </div>`;
+  }).join('');
+  const btn=document.getElementById('commOpenBtn');
+  if(btn&&draftOpen){btn.textContent='✓ DRAFT IS OPEN';btn.disabled=true;}
+}
+
+async function commOpenDraft(){
+  const btn=document.getElementById('commOpenBtn');
+  if(btn){btn.disabled=true;btn.textContent='OPENING...';}
+  try{
+    const state=await jbGet()||{};
+    if(!state.lobby) state.lobby={};
+    state.lobby.draftOpen=true;
+    await jbPut(state);
+    draftOpen=true;
+    onDraftOpen();
+    buildCommSection();
+  }catch(e){
+    console.error('commOpenDraft failed:',e.message);
+    draftOpen=true; onDraftOpen(); buildCommSection();
+  }
+}
+
+function onDraftOpen(){
+  document.getElementById('lbDot').style.cssText='width:8px;height:8px;border-radius:50%;background:#39ff14;box-shadow:0 0 8px #39ff14;flex-shrink:0;animation:pulse 1s ease-in-out infinite';
+  document.getElementById('lbTitle').textContent='DRAFT IS OPEN';
+  document.getElementById('lbSub').textContent='Commissioner has started — enter now!';
+  document.getElementById('readyBtn').style.display='none';
+  document.getElementById('enterBtn').classList.add('show');
+}
+
+// Ready button
+document.addEventListener('DOMContentLoaded',function(){
+  document.getElementById('readyBtn').addEventListener('click',async function(){
+    if(myReady||mySlot===null) return;
+    myReady=true;
+    this.textContent='✓ READY'; this.classList.add('on');
+    commReadyData.add(mySlot);
+    try{
+      const state=await jbGet()||{};
+      if(!state.lobby) state.lobby={};
+      if(!state.lobby.ready) state.lobby.ready=[];
+      if(!state.lobby.ready.includes(mySlot)) state.lobby.ready.push(mySlot);
+      await jbPut(state);
+    }catch(e){}
+    if(mySlot===COMMISSIONER_SLOT) buildCommSection();
+  });
+});
+
+async function pollLobby(){
+  const state=await jbGet(); if(!state||!state.lobby) return;
+  jbState=state;
+  if(state.lobby.ready) state.lobby.ready.forEach(s=>commReadyData.add(s));
+  if(state.lobby.keepers) commKeeperData=state.lobby.keepers;
+  if(mySlot===COMMISSIONER_SLOT) buildCommSection();
+  if(state.lobby.draftOpen&&!draftOpen){draftOpen=true;onDraftOpen();}
+}
+
+// ══ SCREEN 3: DRAFT ══
+function enterDraft(){
+  showScreen('draftScreen');
+  if(!_boardInited){
+    _boardInited=true;
+    applyKeepers();
+    loadPlayers();
+    buildTeamBar(); updateHeader(); renderMyPicks();
+  }
+}
+let _boardInited=false;
+
+// Keepers
+const KEEPERS_DEFAULT={
+  0:'Shohei Ohtani',    // Tighe  (slot 0)
+  10:'Yordan Alvarez',  // Cody   (slot 10)
+  11:'James Wood',      // Greg   (slot 11)
+};
+function applyKeepers(){
+  // Use real keeper data from JSONBin lobby state
+  const kd = {...KEEPERS_DEFAULT, ...commKeeperData};
+  if(keeperId) kd[mySlot]=keeperId;
+  // Fill round 1 keeper slots
+  Object.keys(kd).forEach(function(slotStr){
+    const slot=parseInt(slotStr);
+    const playerName=kd[slot];
+    for(let i=0;i<N_TEAMS;i++){
+      const info=pickInfo(i);
+      if(info.teamIdx===slot&&info.round===1){
+        // Find player in all rosters
+        const allPlayers=Object.values(ROSTERS).flat();
+        const p=allPlayers.find(p=>p.name===playerName)||players.find(p=>p.name===playerName);
+        if(p) picks[i]={player:{name:p.name,pos:p.pos,mlbTeam:p.mlbTeam,mlbId:p.mlbId,stats:{homeRuns:p.hr||0,rbi:0,avg:0,slg:0,ops:0,stolenBases:0}},teamIdx:slot,isKeeper:true};
+        break;
+      }
+    }
+  });
+  // Advance past filled keeper slots
+  while(curPick<N_PICKS&&picks[curPick]){
+    addFeed(curPick,picks[curPick].player,{...pickInfo(curPick),isKeeper:true});
+    curPick++;
+  }
+  updateHeader(); buildTeamBar(); renderPool(); renderMyPicks();
+}
+
+// Team bar
+function buildTeamBar(){
+  const bar=document.getElementById('teamTabs');
+  const onClockIdx=curPick<N_PICKS?pickInfo(curPick).teamIdx:-1;
+  const isMyTurn=onClockIdx===mySlot;
+
+  // Show remaining picks in full snake order starting from curPick
+  // Then wrap around to show already-picked for context
+  const order=[];
+  for(let p=curPick;p<N_PICKS;p++) order.push(p); // remaining picks
+  
+  bar.innerHTML=order.map(function(pickIdx){
+    const info=pickInfo(pickIdx);
+    const t=DRAFT_ORDER[info.teamIdx];
+    const isOnClock=pickIdx===curPick;
+    const isMe=info.teamIdx===mySlot;
+    const isKeeper=picks[pickIdx]&&picks[pickIdx].isKeeper;
+    const made=picks.filter((p,pi)=>p&&pickInfo(pi).teamIdx===info.teamIdx&&!p.isKeeper).length;
+    const keeperForThisTeam=Object.entries(commKeeperData).find(([s])=>parseInt(s)===info.teamIdx);
+    const keeperName=keeperForThisTeam?keeperForThisTeam[1]:null;
+    const keeperShort=keeperName?keeperName.split(' ').slice(-1)[0]:null;
+    const isR1=info.round===1;
+    
+    const nameColor=isOnClock?(isMe?'var(--gold)':'var(--green)'):isMe?'var(--gold)':t.color;
+    const borderColor=isOnClock?(isMe?'var(--gold)':'var(--green)'):isMe?'var(--gold)':'transparent';
+    const bg=isOnClock?(isMe?'rgba(245,216,0,0.08)':'rgba(57,255,20,0.07)'):'transparent';
+    const borderRight=isOnClock?`2px solid ${isMe?'rgba(245,216,0,0.3)':'rgba(57,255,20,0.3)'}`:pickIdx===curPick?'2px solid rgba(57,255,20,0.3)':'1px solid #0a1020';
+    
+    // Sub text: keeper in R1, last pick name otherwise
+    const lastPick=picks.slice(0,pickIdx).filter(p=>p&&p.teamIdx===info.teamIdx).slice(-1)[0];
+    const lastShort=lastPick?lastPick.player.name.split(' ').slice(-1)[0]:null;
+    const subText=isR1&&keeperShort?`🔒 ${keeperShort}`:lastShort||null;
+    
+    return `<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:5px 8px;min-width:60px;background:${bg};border-bottom:2px solid ${borderColor};border-right:${borderRight}">
+      <div style="font-size:0.7rem;line-height:1">${t.logo}</div>
+      <div class="tab-name" style="color:${nameColor};font-size:0.55rem">${t.name}</div>
+      <div style="font-size:0.38rem;color:var(--muted);letter-spacing:0.5px">#${info.pickNum}</div>
+      ${subText?`<div style="font-size:0.36rem;color:${isR1&&keeperShort?'var(--gold)':nameColor};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:58px;text-align:center;margin-top:1px;opacity:0.85">${subText}</div>`:''}
+    </div>`;
+  }).join('');
+  
+  // Scroll to on-clock
+  const firstChild=bar.firstChild;
+  if(firstChild) bar.scrollLeft=0;
+}
+
+
+function updateHeader(){
+  const btn=document.getElementById('draftBtn');
+  if(curPick>=N_PICKS){
+    document.getElementById('clockName').textContent='DRAFT COMPLETE';
+    document.getElementById('hdrRound').innerHTML='✓';
+    document.getElementById('hdrPick').innerHTML=N_PICKS;
+    document.getElementById('clockBanner').style.display='none';
+    if(btn){btn.style.opacity='0.3';btn.style.cursor='not-allowed';btn.textContent='DRAFT COMPLETE';}
+    setTimeout(showDraftComplete,1200);
+    return;
+  }
+  const info=pickInfo(curPick), t=DRAFT_ORDER[info.teamIdx];
+  const isMyTurn=info.teamIdx===mySlot;
+  document.getElementById('hdrRound').innerHTML=`${info.round}<span>/${N_ROUNDS}</span>`;
+  document.getElementById('hdrPick').innerHTML=`${info.pickNum}<span>/${N_PICKS}</span>`;
+  document.getElementById('clockName').textContent=t.name.toUpperCase();
+  document.getElementById('clockName').style.color=isMyTurn?'var(--gold)':'var(--green)';
+  document.getElementById('clockDot').style.background=isMyTurn?'var(--gold)':'var(--green)';
+  document.getElementById('clockDot').style.boxShadow=`0 0 8px ${isMyTurn?'var(--gold)':'var(--green)'}`;
+  document.getElementById('clockBlock').style.background=isMyTurn?'rgba(245,216,0,0.05)':'rgba(57,255,20,0.05)';
+  document.getElementById('clockBanner').style.display=isMyTurn?'flex':'none';
+  if(btn){
+    const drafted=picks.some(pk=>pk&&_currentDetailPlayer&&pk.player.name===_currentDetailPlayer.name);
+    if(drafted){
+      const who=picks.find(pk=>pk&&_currentDetailPlayer&&pk.player.name===_currentDetailPlayer.name);
+      btn.textContent='DRAFTED BY '+(who?DRAFT_ORDER[who.teamIdx].name.toUpperCase():'—');
+      btn.style.opacity='0.35';btn.style.cursor='not-allowed';btn.style.color='var(--gray)';
+      btn.style.borderColor='#1a2d50';btn.style.background='transparent';btn.style.animation='none';btn.style.textShadow='none';
+    } else if(isMyTurn){
+      btn.textContent='· DRAFT THIS PLAYER ·';btn.style.opacity='1';btn.style.cursor='pointer';
+      btn.style.color='var(--green)';btn.style.borderColor='var(--green)';
+      btn.style.background='rgba(57,255,20,0.08)';btn.style.animation='glow 2s ease-in-out infinite';
+      btn.style.textShadow='0 0 10px rgba(57,255,20,0.4)';
+    } else {
+      btn.textContent='· WAITING FOR '+t.name.toUpperCase()+' ·';btn.style.opacity='0.3';btn.style.cursor='not-allowed';
+      btn.style.color='var(--green)';btn.style.borderColor='var(--green)';
+      btn.style.background='rgba(57,255,20,0.08)';btn.style.animation='none';btn.style.textShadow='none';
+    }
+  }
+}
+
+function renderMyPicks(){
+  const t=DRAFT_ORDER[mySlot||0];
+  const mySlots=[];
+  for(let i=0;i<N_PICKS;i++){if(pickInfo(i).teamIdx===mySlot)mySlots.push({i,pick:picks[i],round:pickInfo(i).round});}
+  document.getElementById('myCount').textContent=`${mySlots.filter(s=>s.pick).length}/${N_ROUNDS}`;
+  document.getElementById('myDot').style.background=t?t.color:'var(--gold)';
+  const myKeeperName = keeperId || commKeeperData[mySlot] || null;
+  document.getElementById('myPicks').innerHTML=mySlots.map((slot,idx)=>{
+    const filled=!!slot.pick, isKeeper=filled&&slot.pick.isKeeper;
+    const isNext=!filled&&slot.i===curPick;
+    // Round 1 slot: show keeper placeholder if not yet filled
+    const isR1=slot.round===1;
+    const isKeeperSlot=isR1&&myKeeperName&&!filled;
+    return `<div class="my-pick-row" style="background:${isKeeper?'rgba(245,216,0,0.06)':isNext?'rgba(245,216,0,0.06)':'transparent'};border-left:${isKeeper?'2px solid var(--gold)':isNext?'2px solid var(--gold)':'2px solid transparent'};cursor:${filled?'pointer':'default'}" ${filled?`onclick="openPlayerByName('${slot.pick.player.name.replace(/'/g,'&#39;')}')"`:''}">
+      <div class="my-pick-num" style="color:${isKeeper||isNext?'var(--gold)':'var(--muted)'}">${idx+1}</div>
+      <div class="my-pick-stripe" style="background:${filled?(t?t.color:'var(--gold)'):isNext||isKeeperSlot?'var(--gold)':'var(--border)'}"></div>
+      <div class="my-pick-name${filled?' filled':''}" style="${isKeeper?'color:var(--gold)':isNext?'color:var(--gold)':''}">
+        ${filled?slot.pick.player.name:isKeeperSlot?`🔒 ${myKeeperName}`:isNext?'⬅ YOUR PICK':`PICK ${idx+1}`}
+      </div>
+      ${filled?`<div class="my-pick-pos" style="color:${isKeeper?'var(--gold)':'var(--muted)'}">${isKeeper?'🔒':slot.pick.player.pos}</div>`:isKeeperSlot?'<div class="my-pick-pos" style="color:var(--gold)">KEEP</div>':''}
+    </div>`;
+  }).join('');
+}
+
+// Pool
+function renderPool(){
+  const srch=document.getElementById('srch').value.toLowerCase().trim();
+  const drafted=new Set(picks.filter(Boolean).map(pk=>pk.player.name));
+  const POS_OF=new Set(['OF','LF','CF','RF']);
+  let list=players.filter(p=>{
+    if(!p||!p.name) return false;
+    if(drafted.has(p.name)) return false;
+    if(posFilter!=='ALL'){
+      if(posFilter==='OF'&&POS_OF.has(p.pos)){}
+      else if(p.pos!==posFilter) return false;
+    }
+    if(srch&&!(p.name||'').toLowerCase().includes(srch)&&!(p.mlbTeam||'').toLowerCase().includes(srch)) return false;
+    return true;
+  });
+  const ASC=new Set(['era','whip']);
+  list.sort((a,b)=>{
+    const av=parseFloat(a.stats?.[sortStat])||0,bv=parseFloat(b.stats?.[sortStat])||0;
+    return ASC.has(sortStat)?av-bv:bv-av;
+  });
+  const col1Key=sortStat==='homeRuns'?'slg':sortStat;
+  const col1Lbl={homeRuns:'HR',mostHR:'MOST',hrPerMonth:'HR/M',rbi:'RBI',slg:'SLG',stolenBases:'SB',ops:'OPS'}[col1Key]||col1Key.toUpperCase();
+  document.getElementById('col1Head').textContent=col1Lbl;
+  document.getElementById('col2Head').textContent='HR';
+  function fmtVal(stat,v){
+    if(v==null||v===undefined)return'—';
+    if(['avg','slg','ops'].includes(stat))return Number(v).toFixed(3).replace(/^0/,'');
+    return v;
+  }
+  _filteredPlayers=list;
+  document.getElementById('poolList').innerHTML=list.map((p,rank)=>{
+    const tb=getTeamBg(p.mlbTeam),tf=getTeamFg(p.mlbTeam);
+    const v1=fmtVal(col1Key,p.stats?.[col1Key]);
+    const v2=fmtVal('homeRuns',p.stats?.homeRuns);
+    const isMyTurn=curPick<N_PICKS&&pickInfo(curPick).teamIdx===mySlot;
+    return `<div class="prow${isMyTurn&&rank===0?' onclock-player':''}" onclick="openDetailByIdx(${rank})">
+      <div class="p-shot" style="background:${tb}22">
+        <div class="p-shot-fb">⚾</div>
+        ${p.mlbId?`<img src="${imgUrl(p.mlbId)}" onerror="this.style.display='none'" alt="">`:''}
+      </div>
+      <div class="p-info">
+        <div class="p-name">${p.name}</div>
+        <div class="p-meta">
+          <span class="p-pos pos-${p.pos}">${p.pos}</span>
+          <span class="p-team-badge" style="background:${tb};color:${tf}">${p.mlbTeam}</span>
+        </div>
+      </div>
+      <div class="p-stat">
+        <div class="p-stat-val" style="color:var(--gold)">${v1}</div>
+        <div class="p-stat-lbl">${col1Lbl}</div>
+      </div>
+      <div class="p-stat">
+        <div class="p-stat-val" style="color:var(--teal)">${v2}</div>
+        <div class="p-stat-lbl">HR</div>
+      </div>
+    </div>`;
+  }).join('')||'<div style="padding:20px;text-align:center;font-size:0.55rem;letter-spacing:2px;color:var(--muted)">NO PLAYERS FOUND</div>';
+}
+
+// Detail drawer
+function openDetailByIdx(rank){
+  const p=_filteredPlayers[rank]; if(!p) return;
+  _currentDetailPlayer=p;
+  const tb=getTeamBg(p.mlbTeam),tf=getTeamFg(p.mlbTeam);
+  const shot=document.getElementById('dShot');
+  shot.style.display='block'; shot.src=p.mlbId?imgUrl(p.mlbId):'';
+  shot.onerror=function(){this.style.display='none';};
+  document.getElementById('dName').textContent=p.name;
+  document.getElementById('dSub').innerHTML=`<span class="p-pos pos-${p.pos}">${p.pos}</span><span class="p-team-badge" style="background:${tb};color:${tf}">${p.mlbTeam}</span>`;
+  const s=p.stats||{};
+  document.getElementById('dStats').innerHTML=[
+    {l:'HR',v:s.homeRuns||0,c:'var(--gold)'},{l:'RBI',v:s.rbi||0,c:'var(--white)'},
+    {l:'AVG',v:Number(s.avg||0).toFixed(3).replace(/^0/,''),c:'var(--white)'},
+    {l:'SLG',v:Number(s.slg||0).toFixed(3).replace(/^0/,''),c:'var(--teal)'},
+    {l:'OPS',v:Number(s.ops||0).toFixed(3).replace(/^0/,''),c:'var(--teal)'},
+    {l:'SB',v:s.stolenBases||0,c:'var(--green)'},
+  ].map(st=>`<div class="ds"><div class="ds-val" style="color:${st.c}">${st.v}</div><div class="ds-lbl">${st.l}</div></div>`).join('');
+  updateHeader();
+  document.getElementById('detail').classList.add('open');
+}
+function openPlayerByName(name){
+  const p=players.find(pl=>pl.name===name); if(!p) return;
+  const idx=_filteredPlayers.indexOf(p);
+  if(idx>=0){openDetailByIdx(idx);}else{
+    _currentDetailPlayer=p;
+    const tb=getTeamBg(p.mlbTeam),tf=getTeamFg(p.mlbTeam);
+    const shot=document.getElementById('dShot');
+    shot.style.display='block'; shot.src=p.mlbId?imgUrl(p.mlbId):'';
+    document.getElementById('dName').textContent=p.name;
+    document.getElementById('dSub').innerHTML=`<span class="p-pos pos-${p.pos}">${p.pos}</span><span class="p-team-badge" style="background:${tb};color:${tf}">${p.mlbTeam}</span>`;
+    const s=p.stats||{};
+    document.getElementById('dStats').innerHTML=[
+      {l:'HR',v:s.homeRuns||0,c:'var(--gold)'},{l:'RBI',v:s.rbi||0,c:'var(--white)'},
+      {l:'AVG',v:Number(s.avg||0).toFixed(3).replace(/^0/,''),c:'var(--white)'},
+      {l:'SLG',v:Number(s.slg||0).toFixed(3).replace(/^0/,''),c:'var(--teal)'},
+      {l:'OPS',v:Number(s.ops||0).toFixed(3).replace(/^0/,''),c:'var(--teal)'},
+      {l:'SB',v:s.stolenBases||0,c:'var(--green)'},
+    ].map(st=>`<div class="ds"><div class="ds-val" style="color:${st.c}">${st.v}</div><div class="ds-lbl">${st.l}</div></div>`).join('');
+    const btn=document.getElementById('draftBtn');
+    const isDrafted=picks.some(pk=>pk&&pk.player.name===p.name);
+    const who=picks.find(pk=>pk&&pk.player.name===p.name);
+    if(isDrafted&&who){
+      btn.textContent='DRAFTED BY '+DRAFT_ORDER[who.teamIdx].name.toUpperCase();
+      btn.style.opacity='0.35';btn.style.cursor='not-allowed';btn.style.color='var(--gray)';
+      btn.style.borderColor='#1a2d50';btn.style.background='transparent';btn.style.animation='none';btn.style.textShadow='none';
+    }
+    document.getElementById('detail').classList.add('open');
+  }
+}
+function closeDetail(){ document.getElementById('detail').classList.remove('open'); }
+function draftCurrent(){
+  if(!_currentDetailPlayer) return;
+  if(mySlot===null){showToast('Claim a team first!');return;}
+  if(picks.some(pk=>pk&&pk.player.name===_currentDetailPlayer.name)){showToast('Already drafted!');return;}
+  if(curPick>=N_PICKS) return;
+  if(pickInfo(curPick).teamIdx!==mySlot){showToast('Not your pick!');return;}
+  draftPlayer(_currentDetailPlayer.name);
+}
+
+// Draft
+function draftPlayer(name){
+  if(curPick>=N_PICKS) return;
+  const player=players.find(p=>p.name===name);
+  if(!player||picks.some(pk=>pk&&pk.player.name===name)) return;
+  const prev=curPick, info=pickInfo(curPick);
+  picks[curPick]={player,teamIdx:info.teamIdx};
+  curPick++;
+  while(curPick<N_PICKS&&picks[curPick]){
+    addFeed(curPick,picks[curPick].player,{...pickInfo(curPick),isKeeper:true});
+    curPick++;
+  }
+  updateHeader(); buildTeamBar(); renderPool(); renderMyPicks();
+  addFeed(prev,player,info); closeDetail();
+  showToast(`${player.name} → ${DRAFT_ORDER[info.teamIdx].name} · #${info.pickNum}`);
+  pushDraft();
+}
+
+function addFeed(i,player,info){
+  const feed=document.getElementById('feed');
+  const noMsg=feed.querySelector('div');
+  if(noMsg&&noMsg.textContent==='NO PICKS YET') feed.innerHTML='';
+  const t=DRAFT_ORDER[info.teamIdx];
+  const item=document.createElement('div');
+  item.className='feed-row';
+  item.onclick=function(){openPlayerByName(player.name);};
+  item.innerHTML=`<div class="feed-stripe" style="background:${t?t.color:'#fff'}"></div>
+    <div style="flex:1;min-width:0">
+      <div class="feed-player">${player.name}</div>
+      <div class="feed-team">${t?t.name:'?'} · ${player.pos}${info.isKeeper?' · 🔒':''}</div>
+    </div>
+    <div class="feed-pick">#${info.pickNum}</div>`;
+  feed.insertBefore(item,feed.firstChild);
+}
+
+// Sort/filter delegation
+document.addEventListener('click',function(e){
+  const sb=e.target.closest('.sb');
+  if(sb&&sb.dataset.sort){
+    document.querySelectorAll('.sb').forEach(b=>b.classList.remove('on'));
+    sb.classList.add('on'); sortStat=sb.dataset.sort; renderPool();
+  }
+  const pf=e.target.closest('.pf');
+  if(pf&&pf.dataset.pos){
+    document.querySelectorAll('.pf').forEach(b=>b.classList.remove('on'));
+    pf.classList.add('on'); posFilter=pf.dataset.pos; renderPool();
+  }
+  // Recap rows
+  const rrow=e.target.closest('.recap-prow');
+  if(rrow&&rrow.dataset.pname){
+    const p=recapPickMap[rrow.dataset.pname];
+    if(p) openPlayerByName(p.name);
+  }
+});
+
+// JSONBin draft sync
+let lastPush=0;
+async function pushDraft(){
+  const now=Date.now(); if(now-lastPush<1500) return; lastPush=now;
+  const state=await jbGet(); if(!state) return;
+  state.draft={picks:picks.map(pk=>pk?{n:pk.player.name,t:pk.teamIdx,k:pk.isKeeper||false}:null),cur:curPick,at:now};
+  await jbPut(state);
+}
+
+let jbSyncing=false;
+async function pollDraft(){
+  if(jbSyncing) return; jbSyncing=true;
+  try{
+    const state=await jbGet(); if(!state||!state.draft) return;
+    const rp=state.draft.picks||[], rc=state.draft.cur||0;
+    if(rc<=curPick) return;
+    const wasEmpty=curPick===0;
+    for(let i=curPick;i<rc&&i<N_PICKS;i++){
+      if(!rp[i]) continue;
+      const pl=players.find(p=>p.name===rp[i].n); if(!pl) continue;
+      picks[i]={player:pl,teamIdx:rp[i].t,isKeeper:rp[i].k||false};
+      if(wasEmpty) addFeed(i,pl,{...pickInfo(i),isKeeper:rp[i].k});
+    }
+    curPick=rc;
+    updateHeader(); buildTeamBar(); renderPool(); renderMyPicks();
+    if(!wasEmpty&&rp[rc-1]){
+      const pl=players.find(p=>rp[rc-1]&&p.name===rp[rc-1].n);
+      if(pl) addFeed(rc-1,pl,{...pickInfo(rc-1),isKeeper:rp[rc-1].k});
+    }
+  }finally{jbSyncing=false;}
+}
+
+// ══ PLAYER POOL ══
+function loadPlayers(){
+  // Try live API first
+  const season=new Date().getFullYear();
+  // Try direct MLB Stats API first (works from browser/GitHub Pages)
+  const mlbSeason = new Date().getFullYear();
+  fetch(`https://statsapi.mlb.com/api/v1/stats?stats=season&group=hitting&gameType=R&season=${mlbSeason}&sportId=1&limit=2000&playerPool=All`)
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      if(data && data.stats && data.stats[0] && data.stats[0].splits && data.stats[0].splits.length > 50) {
+        const PITCHERS = new Set(['P','SP','RP','CP']);
+        const splits = data.stats[0].splits;
+        const parsed = splits
+          .filter(s => parseInt(s.stat?.atBats||0) >= 1 && !PITCHERS.has(s.position?.abbreviation))
+          .map(s => {
+            const st=s.stat||{}, pl=s.player||{}, tm=s.team||{};
+            let pos=(s.position?.abbreviation)||'DH';
+            if(!['C','1B','2B','3B','SS','LF','CF','RF','OF','DH'].includes(pos)) pos='DH';
+            const hr=parseInt(st.homeRuns||0);
+            return {
+              name:pl.fullName||'',pos,mlbTeam:tm.abbreviation||'',mlbId:pl.id||0,
+              stats:{homeRuns:hr,mostHR:Math.ceil(hr*0.45),hrPerMonth:+(hr/3).toFixed(1),
+                rbi:parseInt(st.rbi||0),avg:parseFloat(st.avg||0),
+                slg:parseFloat(st.slg||0),ops:parseFloat(st.ops||0),
+                stolenBases:parseInt(st.stolenBases||0)}
+            };
+          }).filter(p=>p.name&&p.mlbId);
+        if(parsed.length > 50) {
+          const seen=new Set();
+          players=parsed.filter(p=>{if(seen.has(p.name))return false;seen.add(p.name);return true;});
+          players.sort((a,b)=>b.stats.homeRuns-a.stats.homeRuns);
+          console.log('MLB API: loaded',players.length,'players');
+          renderPool();
+          if(_boardInited) setTimeout(scheduleNextPick||function(){},300);
+          setInterval(pollDraft,3500);
+          return;
+        }
+      }
+      console.log('MLB API unavailable, using fallback');
+      loadFallbackPlayers();
+      renderPool();
+      if(_boardInited) setTimeout(function(){if(typeof scheduleNextPick==='function')scheduleNextPick();},300);
+      setInterval(pollDraft,3500);
+    })
+    .catch(() => {
+      loadFallbackPlayers();
+      renderPool();
+      if(_boardInited) setTimeout(function(){if(typeof scheduleNextPick==='function')scheduleNextPick();},300);
+      setInterval(pollDraft,3500);
+    });
+
+  const BATCH=50, batches=[];
+  for(let i=0;i<ALL_IDS.length;i+=BATCH) batches.push(ALL_IDS.slice(i,i+BATCH));
+  Promise.all(batches.map(b=>
+    fetch('/api/mlb?ids='+b.join(',')+'&type=season&season='+season)
+      .then(r=>r.ok?r.json().catch(()=>null):null).catch(()=>null)
+  )).then(results=>{
+    const live={};
+    results.forEach(r=>{if(r)Object.assign(live,r);});
+    loadFallbackPlayers();
+    if(Object.keys(live).length>10){
+      players.forEach(p=>{
+        const s=live[p.mlbId];
+        if(!s||!s.stats||!s.stats[0]||!s.stats[0].splits||!s.stats[0].splits[0]) return;
+        const st=s.stats[0].splits[0].stat||{};
+        p.stats={
+          homeRuns:parseInt(st.homeRuns||0),
+          rbi:parseInt(st.rbi||0),
+          avg:parseFloat(st.avg||0),
+          slg:parseFloat(st.slg||0),
+          ops:parseFloat(st.ops||0),
+          stolenBases:parseInt(st.stolenBases||0),
+        };
+      });
+      players.sort((a,b)=>b.stats.homeRuns-a.stats.homeRuns);
+    }
+    renderPool();
+    setInterval(pollDraft,3500);
+  }).catch(()=>{ loadFallbackPlayers(); renderPool(); setInterval(pollDraft,3500); });
+}
+
+function loadFallbackPlayers(){
+  // Seed from all rosters first
+  const rosterPlayers=Object.values(ROSTERS).flat().map(p=>({
+    name:p.name, pos:p.pos, mlbTeam:p.mlbTeam, mlbId:p.mlbId,
+    stats:{homeRuns:p.hr||0,mostHR:Math.ceil((p.hr||0)*0.45),hrPerMonth:+((p.hr||0)/3).toFixed(1),rbi:0,avg:0,slg:0,ops:0,stolenBases:0}
+  }));
+  // Additional pool players
+  const extra=[
+    {name:'Jose Ramirez',pos:'3B',mlbTeam:'CLE',mlbId:608070,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:55,avg:.272,slg:.472,ops:.855,stolenBases:10}},
+    {name:'Junior Caminero',pos:'3B',mlbTeam:'TB',mlbId:691406,stats:{homeRuns:28,mostHR:13,hrPerMonth:9.3,rbi:75,avg:.262,slg:.450,ops:.798,stolenBases:4}},
+    {name:'Rafael Devers',pos:'3B',mlbTeam:'BOS',mlbId:646240,stats:{homeRuns:19,mostHR:9,hrPerMonth:6.3,rbi:55,avg:.258,slg:.462,ops:.822,stolenBases:1}},
+    {name:'Gunnar Henderson',pos:'SS',mlbTeam:'BAL',mlbId:683002,stats:{homeRuns:17,mostHR:8,hrPerMonth:5.7,rbi:50,avg:.247,slg:.472,ops:.820,stolenBases:6}},
+    {name:'Bobby Witt Jr.',pos:'SS',mlbTeam:'KC',mlbId:677951,stats:{homeRuns:13,mostHR:6,hrPerMonth:4.3,rbi:52,avg:.279,slg:.460,ops:.832,stolenBases:22}},
+    {name:'Mookie Betts',pos:'OF',mlbTeam:'LAD',mlbId:605141,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:44,avg:.271,slg:.445,ops:.840,stolenBases:8}},
+    {name:'Freddie Freeman',pos:'1B',mlbTeam:'LAD',mlbId:518692,stats:{homeRuns:15,mostHR:7,hrPerMonth:5.0,rbi:51,avg:.292,slg:.448,ops:.858,stolenBases:5}},
+    {name:'Pete Alonso',pos:'1B',mlbTeam:'BAL',mlbId:624413,stats:{homeRuns:21,mostHR:9,hrPerMonth:7.0,rbi:68,avg:.249,slg:.482,ops:.815,stolenBases:0}},
+    {name:'Fernando Tatis Jr.',pos:'RF',mlbTeam:'SD',mlbId:665487,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:20,avg:.265,slg:.468,ops:.842,stolenBases:12}},
+    {name:'Trea Turner',pos:'SS',mlbTeam:'PHI',mlbId:607208,stats:{homeRuns:8,mostHR:4,hrPerMonth:2.7,rbi:32,avg:.262,slg:.398,ops:.742,stolenBases:16}},
+    {name:'Nolan Arenado',pos:'3B',mlbTeam:'STL',mlbId:571448,stats:{homeRuns:8,mostHR:4,hrPerMonth:2.7,rbi:34,avg:.248,slg:.398,ops:.738,stolenBases:1}},
+    {name:'Gleyber Torres',pos:'2B',mlbTeam:'DET',mlbId:650402,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.252,slg:.388,ops:.728,stolenBases:4}},
+    {name:'Royce Lewis',pos:'SS',mlbTeam:'MIN',mlbId:668679,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:32,avg:.258,slg:.408,ops:.748,stolenBases:6}},
+    {name:'Anthony Volpe',pos:'SS',mlbTeam:'NYY',mlbId:694192,stats:{homeRuns:8,mostHR:4,hrPerMonth:2.7,rbi:28,avg:.242,slg:.392,ops:.728,stolenBases:18}},
+    {name:'Nico Hoerner',pos:'2B',mlbTeam:'CHC',mlbId:663538,stats:{homeRuns:4,mostHR:2,hrPerMonth:1.3,rbi:20,avg:.272,slg:.355,ops:.705,stolenBases:12}},
+    {name:'Tommy Edman',pos:'2B',mlbTeam:'LAD',mlbId:669242,stats:{homeRuns:6,mostHR:3,hrPerMonth:2.0,rbi:24,avg:.262,slg:.372,ops:.718,stolenBases:16}},
+    {name:'Luis Arraez',pos:'2B',mlbTeam:'SD',mlbId:650333,stats:{homeRuns:2,mostHR:1,hrPerMonth:0.7,rbi:18,avg:.315,slg:.338,ops:.758,stolenBases:2}},
+    {name:'Nolan Gorman',pos:'2B',mlbTeam:'STL',mlbId:669004,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:32,avg:.235,slg:.408,ops:.748,stolenBases:2}},
+    {name:'Alec Bohm',pos:'3B',mlbTeam:'PHI',mlbId:664761,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.258,slg:.385,ops:.728,stolenBases:2}},
+    {name:'Josh Jung',pos:'3B',mlbTeam:'TEX',mlbId:672515,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.248,slg:.388,ops:.732,stolenBases:2}},
+    {name:'Nathaniel Lowe',pos:'1B',mlbTeam:'TEX',mlbId:663993,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:30,avg:.262,slg:.388,ops:.738,stolenBases:2}},
+    {name:'Jordan Lawlar',pos:'SS',mlbTeam:'ARI',mlbId:694190,stats:{homeRuns:6,mostHR:3,hrPerMonth:2.0,rbi:24,avg:.258,slg:.372,ops:.718,stolenBases:14}},
+    {name:'Masyn Winn',pos:'SS',mlbTeam:'STL',mlbId:694597,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:22,avg:.255,slg:.358,ops:.705,stolenBases:12}},
+    {name:'Brooks Lee',pos:'SS',mlbTeam:'MIN',mlbId:694194,stats:{homeRuns:6,mostHR:3,hrPerMonth:2.0,rbi:24,avg:.252,slg:.368,ops:.715,stolenBases:4}},
+    {name:'Matt McLain',pos:'SS',mlbTeam:'CIN',mlbId:694096,stats:{homeRuns:6,mostHR:3,hrPerMonth:2.0,rbi:24,avg:.255,slg:.368,ops:.715,stolenBases:10}},
+    {name:'Jackson Holliday',pos:'SS',mlbTeam:'BAL',mlbId:702616,stats:{homeRuns:8,mostHR:4,hrPerMonth:2.7,rbi:28,avg:.248,slg:.398,ops:.735,stolenBases:6}},
+    {name:'Ha-seong Kim',pos:'SS',mlbTeam:'SD',mlbId:673490,stats:{homeRuns:6,mostHR:3,hrPerMonth:2.0,rbi:24,avg:.248,slg:.368,ops:.712,stolenBases:14}},
+    {name:'Austin Wells',pos:'C',mlbTeam:'NYY',mlbId:688898,stats:{homeRuns:8,mostHR:4,hrPerMonth:2.7,rbi:28,avg:.242,slg:.392,ops:.728,stolenBases:2}},
+    {name:'Ryan Jeffers',pos:'C',mlbTeam:'MIN',mlbId:680777,stats:{homeRuns:8,mostHR:4,hrPerMonth:2.7,rbi:28,avg:.235,slg:.392,ops:.728,stolenBases:1}},
+    {name:'Sean Murphy',pos:'C',mlbTeam:'ATL',mlbId:669015,stats:{homeRuns:8,mostHR:4,hrPerMonth:2.7,rbi:28,avg:.238,slg:.392,ops:.728,stolenBases:1}},
+    {name:'Bo Naylor',pos:'C',mlbTeam:'CLE',mlbId:669005,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:24,avg:.232,slg:.382,ops:.718,stolenBases:4}},
+    {name:'Logan OHoppe',pos:'C',mlbTeam:'LAA',mlbId:687742,stats:{homeRuns:8,mostHR:4,hrPerMonth:2.7,rbi:28,avg:.242,slg:.392,ops:.728,stolenBases:2}},
+    {name:'Jarren Duran',pos:'CF',mlbTeam:'BOS',mlbId:680776,stats:{homeRuns:6,mostHR:3,hrPerMonth:2.0,rbi:24,avg:.258,slg:.372,ops:.718,stolenBases:18}},
+    {name:'Ryan McMahon',pos:'3B',mlbTeam:'COL',mlbId:641857,stats:{homeRuns:8,mostHR:4,hrPerMonth:2.7,rbi:30,avg:.242,slg:.395,ops:.732,stolenBases:4}},
+    {name:'Rhys Hoskins',pos:'1B',mlbTeam:'MIL',mlbId:543333,stats:{homeRuns:8,mostHR:4,hrPerMonth:2.7,rbi:30,avg:.235,slg:.398,ops:.735,stolenBases:1}},
+    {name:'Max Kepler',pos:'RF',mlbTeam:'PHI',mlbId:596142,stats:{homeRuns:8,mostHR:4,hrPerMonth:2.7,rbi:28,avg:.245,slg:.395,ops:.732,stolenBases:2}},
+    {name:'Brandon Nimmo',pos:'CF',mlbTeam:'NYM',mlbId:607043,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.258,slg:.392,ops:.755,stolenBases:4}},
+    {name:'Christian Yelich',pos:'LF',mlbTeam:'MIL',mlbId:592885,stats:{homeRuns:6,mostHR:3,hrPerMonth:2.0,rbi:26,avg:.275,slg:.388,ops:.762,stolenBases:6}},
+    {name:'Corbin Carroll',pos:'CF',mlbTeam:'ARI',mlbId:682998,stats:{homeRuns:13,mostHR:6,hrPerMonth:4.3,rbi:36,avg:.268,slg:.418,ops:.778,stolenBases:22}},
+    {name:'Noelvi Marte',pos:'SS',mlbTeam:'CIN',mlbId:694193,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:26,avg:.248,slg:.382,ops:.722,stolenBases:6}},
+    {name:'Jonatan Clase',pos:'CF',mlbTeam:'SEA',mlbId:694174,stats:{homeRuns:4,mostHR:2,hrPerMonth:1.3,rbi:18,avg:.255,slg:.342,ops:.695,stolenBases:24}},
+    {name:'TylerONeill',pos:'LF',mlbTeam:'BOS',mlbId:641933,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:32,avg:.242,slg:.405,ops:.745,stolenBases:6}},
+    {name:'Starling Marte',pos:'RF',mlbTeam:'NYM',mlbId:516782,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:22,avg:.258,slg:.358,ops:.705,stolenBases:10}},
+    {name:'Cedric Mullins',pos:'CF',mlbTeam:'BAL',mlbId:656775,stats:{homeRuns:6,mostHR:3,hrPerMonth:2.0,rbi:24,avg:.248,slg:.368,ops:.715,stolenBases:12}},
+    {name:'MJ Melendez',pos:'C',mlbTeam:'KC',mlbId:669003,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:26,avg:.232,slg:.380,ops:.715,stolenBases:4}},
+    {name:'Francisco Alvarez',pos:'C',mlbTeam:'NYM',mlbId:682626,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:32,avg:.248,slg:.408,ops:.748,stolenBases:1}},
+    {name:'Tyler Stephenson',pos:'C',mlbTeam:'CIN',mlbId:663886,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:34,avg:.272,slg:.415,ops:.772,stolenBases:1}},
+    {name:'Paul Goldschmidt',pos:'1B',mlbTeam:'NYY',mlbId:502671,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.245,slg:.388,ops:.728,stolenBases:2}},
+    {name:'Jurickson Profar',pos:'LF',mlbTeam:'LAD',mlbId:595777,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:26,avg:.258,slg:.385,ops:.728,stolenBases:6}},
+    {name:'Joey Meneses',pos:'1B',mlbTeam:'WSH',mlbId:665491,stats:{homeRuns:8,mostHR:4,hrPerMonth:2.7,rbi:30,avg:.258,slg:.398,ops:.738,stolenBases:1}},
+    {name:'Nick Fortes',pos:'C',mlbTeam:'MIA',mlbId:660623,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:20,avg:.238,slg:.355,ops:.698,stolenBases:1}},
+    // Extended depth pool
+    {name:'Nathaniel Lowe',pos:'1B',mlbTeam:'TEX',mlbId:663993,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:30,avg:.262,slg:.388,ops:.738,stolenBases:2}},
+    {name:'Josh Jung',pos:'3B',mlbTeam:'TEX',mlbId:672515,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.248,slg:.388,ops:.732,stolenBases:2}},
+    {name:'Gleyber Torres',pos:'2B',mlbTeam:'DET',mlbId:650402,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.252,slg:.388,ops:.728,stolenBases:4}},
+    {name:'Nico Hoerner',pos:'2B',mlbTeam:'CHC',mlbId:663538,stats:{homeRuns:4,mostHR:2,hrPerMonth:1.3,rbi:20,avg:.272,slg:.355,ops:.705,stolenBases:12}},
+    {name:'Tommy Edman',pos:'2B',mlbTeam:'LAD',mlbId:669242,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.262,slg:.372,ops:.718,stolenBases:16}},
+    {name:'Royce Lewis',pos:'SS',mlbTeam:'MIN',mlbId:668679,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:32,avg:.258,slg:.408,ops:.748,stolenBases:6}},
+    {name:'Anthony Volpe',pos:'SS',mlbTeam:'NYY',mlbId:694192,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.242,slg:.392,ops:.728,stolenBases:18}},
+    {name:'Trea Turner',pos:'SS',mlbTeam:'PHI',mlbId:607208,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:32,avg:.262,slg:.398,ops:.742,stolenBases:16}},
+    {name:'Nolan Gorman',pos:'2B',mlbTeam:'STL',mlbId:669004,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:32,avg:.235,slg:.408,ops:.748,stolenBases:2}},
+    {name:'Alec Bohm',pos:'3B',mlbTeam:'PHI',mlbId:664761,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.258,slg:.385,ops:.728,stolenBases:2}},
+    {name:'Nolan Arenado',pos:'3B',mlbTeam:'STL',mlbId:571448,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:34,avg:.248,slg:.398,ops:.738,stolenBases:1}},
+    {name:'Ryan McMahon',pos:'3B',mlbTeam:'COL',mlbId:641857,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:30,avg:.242,slg:.395,ops:.732,stolenBases:4}},
+    {name:'Rhys Hoskins',pos:'1B',mlbTeam:'MIL',mlbId:543333,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:30,avg:.235,slg:.398,ops:.735,stolenBases:1}},
+    {name:'Paul Goldschmidt',pos:'1B',mlbTeam:'NYY',mlbId:502671,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.245,slg:.388,ops:.728,stolenBases:2}},
+    {name:'Jose Abreu',pos:'1B',mlbTeam:'HOU',mlbId:547989,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.238,slg:.382,ops:.718,stolenBases:0}},
+    {name:'Andrew McCutchen',pos:'DH',mlbTeam:'PIT',mlbId:457705,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.245,slg:.368,ops:.712,stolenBases:4}},
+    {name:'Giancarlo Stanton',pos:'DH',mlbTeam:'NYY',mlbId:519317,stats:{homeRuns:8,mostHR:4,hrPerMonth:2.7,rbi:28,avg:.238,slg:.408,ops:.748,stolenBases:0}},
+    {name:'Marcell Ozuna',pos:'DH',mlbTeam:'PIT',mlbId:542303,stats:{homeRuns:8,mostHR:4,hrPerMonth:2.7,rbi:30,avg:.245,slg:.395,ops:.748,stolenBases:0}},
+    {name:'Steven Kwan',pos:'LF',mlbTeam:'CLE',mlbId:680757,stats:{homeRuns:4,mostHR:2,hrPerMonth:1.3,rbi:22,avg:.285,slg:.368,ops:.748,stolenBases:14}},
+    {name:'Lane Thomas',pos:'RF',mlbTeam:'WSH',mlbId:641933,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.245,slg:.392,ops:.728,stolenBases:8}},
+    {name:'Nolan Jones',pos:'RF',mlbTeam:'COL',mlbId:666152,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.245,slg:.392,ops:.728,stolenBases:10}},
+    {name:'Joey Meneses',pos:'1B',mlbTeam:'WSH',mlbId:665491,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:30,avg:.258,slg:.398,ops:.738,stolenBases:1}},
+    {name:'Luke Raley',pos:'LF',mlbTeam:'SEA',mlbId:664024,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.242,slg:.392,ops:.728,stolenBases:6}},
+    {name:'Ramon Laureano',pos:'RF',mlbTeam:'SD',mlbId:657656,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:26,avg:.248,slg:.382,ops:.722,stolenBases:6}},
+    {name:'Mark Canha',pos:'OF',mlbTeam:'DET',mlbId:572287,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:22,avg:.248,slg:.368,ops:.718,stolenBases:2}},
+    {name:'Enrique Hernandez',pos:'2B',mlbTeam:'BOS',mlbId:571771,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:22,avg:.248,slg:.368,ops:.708,stolenBases:4}},
+    {name:'Brandon Nimmo',pos:'CF',mlbTeam:'NYM',mlbId:607043,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.258,slg:.392,ops:.755,stolenBases:4}},
+    {name:'Jurickson Profar',pos:'LF',mlbTeam:'LAD',mlbId:595777,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:26,avg:.258,slg:.385,ops:.728,stolenBases:6}},
+    {name:'Christopher Morel',pos:'OF',mlbTeam:'CHC',mlbId:666624,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.238,slg:.395,ops:.728,stolenBases:8}},
+    {name:'Esteury Ruiz',pos:'CF',mlbTeam:'OAK',mlbId:669809,stats:{homeRuns:4,mostHR:1,hrPerMonth:1.3,rbi:18,avg:.255,slg:.342,ops:.695,stolenBases:22}},
+    {name:'Jonatan Clase',pos:'CF',mlbTeam:'SEA',mlbId:694174,stats:{homeRuns:4,mostHR:1,hrPerMonth:1.3,rbi:18,avg:.255,slg:.342,ops:.695,stolenBases:24}},
+    {name:'Jarren Duran',pos:'CF',mlbTeam:'BOS',mlbId:680776,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.258,slg:.372,ops:.718,stolenBases:18}},
+    {name:'Manuel Margot',pos:'RF',mlbTeam:'MIN',mlbId:622110,stats:{homeRuns:4,mostHR:1,hrPerMonth:1.3,rbi:18,avg:.255,slg:.342,ops:.692,stolenBases:10}},
+    {name:'Leody Taveras',pos:'CF',mlbTeam:'TEX',mlbId:665750,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:20,avg:.252,slg:.352,ops:.698,stolenBases:16}},
+    {name:'Kevin Kiermaier',pos:'CF',mlbTeam:'TOR',mlbId:595281,stats:{homeRuns:4,mostHR:1,hrPerMonth:1.3,rbi:16,avg:.235,slg:.328,ops:.678,stolenBases:8}},
+    {name:'Andrew Benintendi',pos:'LF',mlbTeam:'CWS',mlbId:571671,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:22,avg:.255,slg:.355,ops:.702,stolenBases:6}},
+    {name:'Starling Marte',pos:'RF',mlbTeam:'NYM',mlbId:516782,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:22,avg:.258,slg:.358,ops:.705,stolenBases:10}},
+    {name:'Cedric Mullins',pos:'CF',mlbTeam:'BAL',mlbId:656775,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.248,slg:.368,ops:.715,stolenBases:12}},
+    {name:'Myles Straw',pos:'CF',mlbTeam:'CLE',mlbId:657131,stats:{homeRuns:2,mostHR:1,hrPerMonth:0.7,rbi:14,avg:.248,slg:.312,ops:.668,stolenBases:16}},
+    {name:'Luis Arraez',pos:'2B',mlbTeam:'SD',mlbId:650333,stats:{homeRuns:2,mostHR:1,hrPerMonth:0.7,rbi:18,avg:.315,slg:.338,ops:.758,stolenBases:2}},
+    {name:'Ha-seong Kim',pos:'SS',mlbTeam:'SD',mlbId:673490,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.248,slg:.368,ops:.712,stolenBases:14}},
+    {name:'Trea Turner',pos:'SS',mlbTeam:'PHI',mlbId:607208,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:32,avg:.262,slg:.398,ops:.742,stolenBases:16}},
+    {name:'Oswaldo Cabrera',pos:'SS',mlbTeam:'NYY',mlbId:665926,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:20,avg:.242,slg:.352,ops:.698,stolenBases:6}},
+    {name:'Masyn Winn',pos:'SS',mlbTeam:'STL',mlbId:694597,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:22,avg:.255,slg:.358,ops:.705,stolenBases:12}},
+    {name:'Jordan Lawlar',pos:'SS',mlbTeam:'ARI',mlbId:694190,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.258,slg:.372,ops:.718,stolenBases:14}},
+    {name:'Matt McLain',pos:'SS',mlbTeam:'CIN',mlbId:694096,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.255,slg:.368,ops:.715,stolenBases:10}},
+    {name:'Brooks Lee',pos:'SS',mlbTeam:'MIN',mlbId:694194,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.252,slg:.368,ops:.715,stolenBases:4}},
+    {name:'Geraldo Perdomo',pos:'SS',mlbTeam:'ARI',mlbId:661389,stats:{homeRuns:4,mostHR:1,hrPerMonth:1.3,rbi:18,avg:.252,slg:.342,ops:.692,stolenBases:8}},
+    {name:'Tyler Freeman',pos:'2B',mlbTeam:'CLE',mlbId:669243,stats:{homeRuns:4,mostHR:1,hrPerMonth:1.3,rbi:20,avg:.268,slg:.345,ops:.698,stolenBases:8}},
+    {name:'Brendan Donovan',pos:'2B',mlbTeam:'STL',mlbId:680977,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:22,avg:.265,slg:.358,ops:.712,stolenBases:6}},
+    {name:'Gavin Lux',pos:'2B',mlbTeam:'LAD',mlbId:666157,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.252,slg:.368,ops:.712,stolenBases:6}},
+    {name:'Wenceel Perez',pos:'2B',mlbTeam:'DET',mlbId:666215,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:22,avg:.268,slg:.368,ops:.712,stolenBases:12}},
+    {name:'Ji Hwan Bae',pos:'2B',mlbTeam:'PIT',mlbId:681481,stats:{homeRuns:3,mostHR:1,hrPerMonth:1.0,rbi:16,avg:.262,slg:.325,ops:.688,stolenBases:18}},
+    {name:'Jose Miranda',pos:'3B',mlbTeam:'MIN',mlbId:669006,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.252,slg:.385,ops:.728,stolenBases:1}},
+    {name:'Josh Jung',pos:'3B',mlbTeam:'TEX',mlbId:672515,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.248,slg:.388,ops:.732,stolenBases:2}},
+    {name:'Noelvi Marte',pos:'SS',mlbTeam:'CIN',mlbId:694193,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:26,avg:.248,slg:.382,ops:.722,stolenBases:6}},
+    {name:'Jackson Holliday',pos:'SS',mlbTeam:'BAL',mlbId:702616,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.248,slg:.398,ops:.735,stolenBases:6}},
+    {name:'Jesús Sánchez',pos:'LF',mlbTeam:'MIA',mlbId:660821,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:26,avg:.245,slg:.382,ops:.722,stolenBases:4}},
+    {name:'Bryan De La Cruz',pos:'OF',mlbTeam:'MIA',mlbId:672710,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.252,slg:.385,ops:.728,stolenBases:4}},
+    {name:'Max Kepler',pos:'RF',mlbTeam:'PHI',mlbId:596142,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.245,slg:.395,ops:.732,stolenBases:2}},
+    {name:'Austin Hays',pos:'LF',mlbTeam:'PHI',mlbId:664232,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:26,avg:.248,slg:.382,ops:.722,stolenBases:4}},
+    {name:'Ezequiel Tovar',pos:'SS',mlbTeam:'COL',mlbId:678662,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:32,avg:.255,slg:.405,ops:.742,stolenBases:6}},
+    {name:'Victor Caratini',pos:'C',mlbTeam:'HOU',mlbId:623911,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:22,avg:.245,slg:.358,ops:.702,stolenBases:0}},
+    {name:'Kyle Higashioka',pos:'C',mlbTeam:'SD',mlbId:595978,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:18,avg:.222,slg:.348,ops:.688,stolenBases:0}},
+    {name:'Danny Jansen',pos:'C',mlbTeam:'BOS',mlbId:642207,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:22,avg:.235,slg:.362,ops:.705,stolenBases:0}},
+    {name:'Patrick Bailey',pos:'C',mlbTeam:'SF',mlbId:663887,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:20,avg:.235,slg:.352,ops:.695,stolenBases:2}},
+    {name:'Jose Trevino',pos:'C',mlbTeam:'NYY',mlbId:650401,stats:{homeRuns:4,mostHR:1,hrPerMonth:1.3,rbi:18,avg:.232,slg:.332,ops:.682,stolenBases:0}},
+    {name:'Ryan Noda',pos:'1B',mlbTeam:'OAK',mlbId:669002,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:22,avg:.225,slg:.368,ops:.712,stolenBases:2}},
+    {name:'Rhys Hoskins',pos:'1B',mlbTeam:'MIL',mlbId:543333,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:30,avg:.235,slg:.398,ops:.735,stolenBases:1}},
+    {name:'Paul Goldschmidt',pos:'1B',mlbTeam:'NYY',mlbId:502671,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.245,slg:.388,ops:.728,stolenBases:2}},
+    {name:'Andrew McCutchen',pos:'DH',mlbTeam:'PIT',mlbId:457705,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.245,slg:.368,ops:.712,stolenBases:4}},
+    {name:'Ross Stripling',pos:'DH',mlbTeam:'TOR',mlbId:596133,stats:{homeRuns:0,mostHR:0,hrPerMonth:0.0,rbi:0,avg:.000,slg:.000,ops:.000,stolenBases:0}},
+  ];
+  const seen=new Set();
+  const allPlayers=[...rosterPlayers,...extra];
+  players=allPlayers.filter(p=>{if(!p.name||seen.has(p.name))return false;seen.add(p.name);return true;});
+  players.sort((a,b)=>(b.stats?.homeRuns||0)-(a.stats?.homeRuns||0));
+}
+
+// ══ SCREEN 4: RECAP ══
+function showDraftComplete(){
+  showScreen('recapScreen');
+  showRecapTab('myteam');
+}
+let _recapTab='myteam';
+function showRecapTab(tab){
+  _recapTab=tab;
+  document.querySelectorAll('.rtab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.rtab')[tab==='myteam'?0:1].classList.add('active');
+  recapPickMap={};
+  for(let i=0;i<N_PICKS;i++){if(picks[i])recapPickMap[pickInfo(i).pickNum]=picks[i].player;}
+  let myIdx=0;
+  for(let i=0;i<N_PICKS;i++){if(picks[i]&&pickInfo(i).teamIdx===mySlot)recapPickMap['my'+myIdx++]=picks[i].player;}
+  document.getElementById('recapContent').innerHTML=tab==='myteam'?buildMyTeamRecap():buildAllTeamsRecap();
+}
+function buildMyTeamRecap(){
+  const t=DRAFT_ORDER[mySlot||0];
+  const myPicks=[];
+  for(let i=0;i<N_PICKS;i++){if(picks[i]&&pickInfo(i).teamIdx===mySlot)myPicks.push({pick:picks[i],info:pickInfo(i)});}
+  const totalHR=myPicks.reduce((s,p)=>s+(p.pick.player.stats?.homeRuns||0),0);
+  const totalRBI=myPicks.reduce((s,p)=>s+(p.pick.player.stats?.rbi||0),0);
+  const totalSB=myPicks.reduce((s,p)=>s+(p.pick.player.stats?.stolenBases||0),0);
+  let html=`<div style="padding:16px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+      <div style="font-size:2rem">${t.logo}</div>
+      <div><div style="font-family:var(--bebas);font-size:1.8rem;letter-spacing:3px;color:${t.color}">${t.teamName.toUpperCase()}</div>
+      <div style="font-size:0.45rem;letter-spacing:3px;color:var(--muted)">${myPicks.length} PLAYERS DRAFTED</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">
+      <div style="background:var(--card);padding:10px;text-align:center;border-radius:3px"><div style="font-family:var(--bebas);font-size:1.6rem;color:var(--gold)">${totalHR}</div><div style="font-size:0.4rem;letter-spacing:2px;color:var(--muted)">PROJ HR</div></div>
+      <div style="background:var(--card);padding:10px;text-align:center;border-radius:3px"><div style="font-family:var(--bebas);font-size:1.6rem;color:var(--teal)">${totalRBI}</div><div style="font-size:0.4rem;letter-spacing:2px;color:var(--muted)">PROJ RBI</div></div>
+      <div style="background:var(--card);padding:10px;text-align:center;border-radius:3px"><div style="font-family:var(--bebas);font-size:1.6rem;color:var(--green)">${totalSB}</div><div style="font-size:0.4rem;letter-spacing:2px;color:var(--muted)">PROJ SB</div></div>
+    </div>`;
+  myPicks.forEach((mp,idx)=>{
+    const p=mp.pick.player, isk=mp.pick.isKeeper;
+    html+=`<div class="recap-prow" data-pname="my${idx}" style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+      <div style="font-size:0.42rem;color:var(--muted);width:18px;text-align:right;flex-shrink:0">${idx+1}</div>
+      <div style="width:2px;height:32px;background:${t.color};flex-shrink:0;border-radius:1px"></div>
+      <div style="flex:1;min-width:0"><div style="font-family:var(--bebas);font-size:1rem;letter-spacing:0.5px">${p.name}${isk?' 🔒':''}</div>
+      <div style="font-size:0.42rem;color:var(--muted);margin-top:1px">${p.pos} · ${p.mlbTeam} · Pick #${mp.info.pickNum}</div></div>
+      <div style="text-align:right;flex-shrink:0"><div style="font-family:var(--bebas);font-size:1rem;color:var(--gold)">${p.stats?.homeRuns||0}</div><div style="font-size:0.38rem;letter-spacing:1px;color:var(--muted)">HR</div></div>
+    </div>`;
+  });
+  return html+'</div>';
+}
+function buildAllTeamsRecap(){
+  let html='<div style="padding:12px 16px">';
+  DRAFT_ORDER.forEach(t=>{
+    const teamPicks=[];
+    for(let i=0;i<N_PICKS;i++){if(picks[i]&&pickInfo(i).teamIdx===t.slot)teamPicks.push({pick:picks[i],info:pickInfo(i)});}
+    const isMe=t.slot===mySlot;
+    const tHR=teamPicks.reduce((s,p)=>s+(p.pick.player.stats?.homeRuns||0),0);
+    html+=`<div style="margin-bottom:16px;border:1px solid ${isMe?t.color:'var(--border)'};border-radius:4px;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:${isMe?'rgba(245,216,0,0.06)':'#080f1e'}">
+        <div style="font-size:1.1rem">${t.logo}</div>
+        <div style="font-family:var(--bebas);font-size:1rem;letter-spacing:2px;color:${t.color};flex:1">${t.teamName.toUpperCase()}</div>
+        <div style="font-family:var(--bebas);font-size:0.9rem;color:var(--gold)">${tHR} HR</div>
+      </div>
+      <div style="padding:4px 12px 8px">`;
+    teamPicks.forEach(mp=>{
+      const p=mp.pick.player;
+      html+=`<div class="recap-prow" data-pname="${mp.info.pickNum}" style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.03)">
+        <div style="font-size:0.38rem;color:var(--muted);width:14px;text-align:right">${mp.info.pickNum}</div>
+        <div style="font-size:0.68rem;font-weight:700;flex:1">${p.name}${mp.pick.isKeeper?' 🔒':''}</div>
+        <div style="font-size:0.42rem;color:var(--muted)">${p.pos}</div>
+        <div style="font-family:var(--bebas);font-size:0.8rem;color:var(--gold);width:24px;text-align:right">${p.stats?.homeRuns||0}</div>
+      </div>`;
+    });
+    html+='</div></div>';
+  });
+  return html+'</div>';
+}
+
+// ══ UTILS ══
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ══ INIT ══
+let jbState = {};
+document.addEventListener('DOMContentLoaded', async function(){
+  // Check if draft already in progress
+  const state = await jbGet();
+  jbState = state || {};
+  if(state){
+    if(state.lobby?.keepers) commKeeperData=state.lobby.keepers;
+    if(state.lobby?.ready) state.lobby.ready.forEach(s=>commReadyData.add(s));
+    if(state.claims){
+      // Check if this browser already claimed a team (use localStorage as fallback)
+      const savedSlot = localStorage.getItem('bdo_my_slot');
+      if(savedSlot!==null){
+        const slot=parseInt(savedSlot);
+        if(state.claims[slot]===slot){
+          mySlot=slot;
+          if(state.lobby?.draftOpen&&state.draft&&state.draft.cur>0){
+            // Rejoin draft in progress
+            draftOpen=true;
+            showScreen('draftScreen');
+            _boardInited=true;
+            loadPlayers();
+            buildTeamBar(); updateHeader(); renderMyPicks();
+            return;
+          }
+          enterLobby();
+          return;
+        }
+      }
+    }
+  }
+  buildClaimScreen();
+});
+
+// Save slot to localStorage when claimed
+const _origClaim = claimTeam;
+window.claimTeam = async function(slot){
+  await _origClaim(slot);
+  localStorage.setItem('bdo_my_slot', slot);
+};
+</script>
+</body>
+</html>
