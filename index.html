@@ -1335,6 +1335,8 @@ function loadPlayers(rejoinState){
   fetch(`/api/mlb?path=stats&stats=season&group=hitting&gameType=R&season=${mlbSeason}&sportId=1&limit=2000&playerPool=All`)
     .then(r => r.ok ? r.json() : null)
     .then(data => {
+      console.log('MLB API response keys:', data ? Object.keys(data) : 'null');
+      if(data && data.stats) console.log('MLB splits count:', data.stats[0]?.splits?.length || 0);
       if(data && data.stats && data.stats[0] && data.stats[0].splits && data.stats[0].splits.length > 50) {
         const PITCHERS = new Set(['P','SP','RP','CP']);
         const splits = data.stats[0].splits;
