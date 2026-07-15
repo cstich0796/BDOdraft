@@ -138,7 +138,7 @@ body{display:flex;flex-direction:column}
 .my-pick-name{font-size:0.72rem;font-weight:700;letter-spacing:0.3px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
 .my-pick-name.filled{color:var(--white);font-size:0.78rem}
 .my-pick-pos{font-size:0.38rem;font-weight:700;letter-spacing:1px;color:var(--muted);flex-shrink:0}
-#feed{flex:1;overflow-y:auto;scrollbar-width:none;border-top:1px solid var(--border);min-height:0}
+#feed{flex:1;overflow-y:auto;scrollbar-width:none;border-top:1px solid var(--border);min-height:0;padding-bottom:56px}
 #feed::-webkit-scrollbar{display:none}
 .feed-row{display:flex;align-items:center;gap:6px;padding:5px 10px;border-bottom:1px solid rgba(255,255,255,0.03);animation:fadeIn 0.3s ease;cursor:pointer}
 .feed-stripe{width:2px;height:28px;flex-shrink:0;border-radius:1px}
@@ -163,7 +163,7 @@ body{display:flex;flex-direction:column}
 .col-head{display:grid;grid-template-columns:36px 1fr 48px 48px;padding:5px 12px;background:#030810;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5;flex-shrink:0}
 .ch{font-size:0.4rem;letter-spacing:2px;color:var(--muted);font-weight:700;text-align:center}
 .ch.left{text-align:left}
-#poolList{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;min-height:0}
+#poolList{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;min-height:0;padding-bottom:56px}
 .prow{display:grid;grid-template-columns:36px 1fr 48px 48px;align-items:center;border-bottom:1px solid rgba(255,255,255,0.03);cursor:pointer;transition:background 0.1s;min-height:52px}
 .prow:hover{background:rgba(255,255,255,0.03)}
 .p-shot{align-self:stretch;overflow:hidden;position:relative;background:#0a1525;display:flex;align-items:center;justify-content:center}
@@ -250,25 +250,11 @@ body{display:flex;flex-direction:column}
 }
 
 /* ── COMMISSIONER DRAFT PANEL ── */
-#commDraftPanel{
-  display:none;
-  position:fixed;bottom:0;left:0;right:0;z-index:800;
-  background:#040c1a;border-top:2px solid rgba(245,216,0,0.3);
-  padding:8px 12px;
-  flex-direction:row;align-items:center;gap:8px;
-}
+#commDraftPanel{display:none;position:fixed;bottom:0;left:0;right:0;z-index:800;background:#040c1a;border-top:2px solid rgba(245,216,0,0.3);padding:8px 12px;flex-direction:row;align-items:center;gap:8px}
 .cdp-label{font-size:0.38rem;letter-spacing:3px;color:var(--gold);font-weight:700;flex-shrink:0;font-family:var(--barlow)}
-.cdp-btn{
-  font-family:var(--bebas);font-size:0.7rem;letter-spacing:2px;
-  padding:7px 12px;cursor:pointer;border-radius:3px;flex-shrink:0;
-  transition:all 0.15s;border:1px solid;
-}
+.cdp-btn{font-family:var(--bebas);font-size:0.7rem;letter-spacing:2px;padding:7px 12px;cursor:pointer;border-radius:3px;flex-shrink:0;border:1px solid}
 .cdp-btn-red{background:rgba(231,76,60,0.1);border-color:#e74c3c;color:#e74c3c}
-.cdp-btn-red:hover{background:#e74c3c;color:#fff}
 .cdp-btn-yellow{background:rgba(245,216,0,0.08);border-color:var(--gold);color:var(--gold)}
-.cdp-btn-yellow:hover{background:var(--gold);color:#060d1f}
-.cdp-btn-gray{background:rgba(100,130,170,0.1);border-color:var(--muted);color:var(--muted)}
-.cdp-btn-gray:hover{background:var(--muted);color:#fff}
 </style>
 </head>
 <body>
@@ -312,7 +298,7 @@ body{display:flex;flex-direction:column}
     </div>
     <div id="commTeamList" style="overflow-y:auto;max-height:26vh;scrollbar-width:none"></div>
     <button class="comm-open-btn" id="commOpenBtn" onclick="commOpenDraft()">⚡ OPEN THE DRAFT</button>
-    <button onclick="resetDraft()" style="width:calc(100% - 32px);margin:0 16px 12px;padding:10px;font-family:var(--bebas);font-size:0.8rem;letter-spacing:4px;background:transparent;border:1px solid #e74c3c;color:#e74c3c;cursor:pointer;border-radius:3px;opacity:0.7">↺ RESET DRAFT</button>
+    <button onclick="commResetDraftFull()" style="width:calc(100% - 32px);margin:0 16px 12px;padding:10px;font-family:var(--bebas);font-size:0.8rem;letter-spacing:4px;background:transparent;border:1px solid #e74c3c;color:#e74c3c;cursor:pointer;border-radius:3px">↺ RESET DRAFT</button>
   </div>
   <div class="lobby-bottom">
     <div class="lb-status">
@@ -721,7 +707,7 @@ function enterLobby(){
   }
 
   showScreen('lobbyScreen');
-  setInterval(pollLobby, 3000);
+  setInterval(pollLobby, 2000);
 }
 
 function buildLobbyRoster(){
@@ -822,16 +808,6 @@ function buildCommSection(){
   if(btn&&draftOpen){btn.textContent='✓ DRAFT IS OPEN';btn.disabled=true;}
 }
 
-
-async function resetDraft(){
-  if(!confirm('RESET the entire draft? This clears all claims, keepers, picks and ready status. Cannot be undone.')) return;
-  const fresh = {claims:{},lobby:{ready:[],keepers:{},draftOpen:false},draft:{picks:[],cur:0}};
-  await jbPut(fresh);
-  localStorage.removeItem('bdo_my_slot');
-  alert('Draft reset! Everyone needs to re-claim their team.');
-  location.reload();
-}
-
 async function commOpenDraft(){
   const btn=document.getElementById('commOpenBtn');
   if(btn){btn.disabled=true;btn.textContent='OPENING...';}
@@ -878,18 +854,41 @@ document.addEventListener('DOMContentLoaded',function(){
 async function pollLobby(){
   const state=await jbGet(); if(!state||!state.lobby) return;
   jbState=state;
-  if(state.lobby.ready) state.lobby.ready.forEach(s=>commReadyData.add(s));
+  if(state.lobby.ready) state.lobby.ready.forEach(function(s){commReadyData.add(parseInt(s));});
   if(state.lobby.keepers) commKeeperData=state.lobby.keepers;
   if(mySlot===COMMISSIONER_SLOT) buildCommSection();
   if(state.lobby.draftOpen&&!draftOpen){draftOpen=true;onDraftOpen();}
 }
 
 // ══ SCREEN 3: DRAFT ══
+
 // ── COMMISSIONER DRAFT CONTROLS ──
 function showCommDraftPanel(){
-  if(mySlot === COMMISSIONER_SLOT){
-    document.getElementById('commDraftPanel').style.display = 'flex';
-  }
+  if(mySlot===COMMISSIONER_SLOT) document.getElementById('commDraftPanel').style.display='flex';
+}
+async function commResetLastPick(){
+  if(curPick<=0){alert('No picks to undo.');return;}
+  if(!confirm('Undo the last pick?')) return;
+  curPick--;
+  while(curPick>0&&picks[curPick]&&picks[curPick].isKeeper) curPick--;
+  picks[curPick]=null;
+  updateHeader();buildTeamBar();renderPool();renderMyPicks();
+  const feed=document.getElementById('feed');
+  if(feed&&feed.firstChild) feed.removeChild(feed.firstChild);
+  await pushDraft();
+  showToast('Last pick undone');
+}
+function commGoToLobby(){
+  if(!confirm('Go back to lobby? Draft state will be preserved.')) return;
+  showScreen('lobbyScreen');
+}
+async function commResetDraftFull(){
+  if(!confirm('RESET THE ENTIRE DRAFT? This clears everything and cannot be undone.')) return;
+  const fresh={claims:{},lobby:{ready:[],keepers:{},draftOpen:false},draft:{picks:[],cur:0}};
+  await jbPut(fresh);
+  localStorage.removeItem('bdo_my_slot');
+  alert('Draft reset. Reloading...');
+  location.reload();
 }
 
 function enterDraft(){
@@ -906,7 +905,7 @@ let _boardInited=false;
 
 // Keepers
 function applyKeepers(){
-  // Only use keepers that managers actually selected (from JSONBin)
+  // Use real keeper data from JSONBin lobby state
   const kd = {...commKeeperData};
   if(keeperId) kd[mySlot]=keeperId;
   // Fill round 1 keeper slots
@@ -1282,20 +1281,22 @@ function loadPlayers(rejoinState){
           players=parsed.filter(p=>{if(seen.has(p.name))return false;seen.add(p.name);return true;});
           players.sort((a,b)=>b.stats.homeRuns-a.stats.homeRuns);
           console.log('MLB API: loaded',players.length,'players');
-          loadFallbackPlayers(rejoinState); // reconstruct picks if rejoining
           renderPool();
+          if(_boardInited) setTimeout(scheduleNextPick||function(){},300);
           setInterval(pollDraft,3500);
           return;
         }
       }
       console.log('MLB API unavailable, using fallback');
-      loadFallbackPlayers(rejoinState);
+      loadFallbackPlayers();
       renderPool();
+      if(_boardInited) setTimeout(function(){if(typeof scheduleNextPick==='function')scheduleNextPick();},300);
       setInterval(pollDraft,3500);
     })
-    .catch(function() {
-      loadFallbackPlayers(rejoinState);
+    .catch(() => {
+      loadFallbackPlayers();
       renderPool();
+      if(_boardInited) setTimeout(function(){if(typeof scheduleNextPick==='function')scheduleNextPick();},300);
       setInterval(pollDraft,3500);
     });
 
@@ -1433,302 +1434,6 @@ function loadFallbackPlayers(){
     {name:'Paul Goldschmidt',pos:'1B',mlbTeam:'NYY',mlbId:502671,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.245,slg:.388,ops:.728,stolenBases:2}},
     {name:'Andrew McCutchen',pos:'DH',mlbTeam:'PIT',mlbId:457705,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.245,slg:.368,ops:.712,stolenBases:4}},
     {name:'Ross Stripling',pos:'DH',mlbTeam:'TOR',mlbId:596133,stats:{homeRuns:0,mostHR:0,hrPerMonth:0.0,rbi:0,avg:.000,slg:.000,ops:.000,stolenBases:0}},
-    // ── ADDITIONAL DEPTH (reaching ~400 total) ──
-    {name:'Oneil Cruz',pos:'CF',mlbTeam:'PIT',mlbId:665833,stats:{homeRuns:13,mostHR:6,hrPerMonth:4.3,rbi:42,avg:.248,slg:.440,ops:.778,stolenBases:16}},
-    {name:'CJ Abrams',pos:'SS',mlbTeam:'WSH',mlbId:682928,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:30,avg:.255,slg:.405,ops:.748,stolenBases:18}},
-    {name:'Jake Burger',pos:'3B',mlbTeam:'TEX',mlbId:669394,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:40,avg:.242,slg:.422,ops:.762,stolenBases:1}},
-    {name:'Spencer Torkelson',pos:'1B',mlbTeam:'DET',mlbId:679529,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:36,avg:.245,slg:.412,ops:.755,stolenBases:1}},
-    {name:'Corbin Carroll',pos:'CF',mlbTeam:'ARI',mlbId:682998,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:36,avg:.268,slg:.418,ops:.778,stolenBases:22}},
-    {name:'Wyatt Langford',pos:'LF',mlbTeam:'TEX',mlbId:694671,stats:{homeRuns:12,mostHR:5,hrPerMonth:4.0,rbi:44,avg:.265,slg:.438,ops:.798,stolenBases:10}},
-    {name:'Gunnar Henderson',pos:'SS',mlbTeam:'BAL',mlbId:683002,stats:{homeRuns:17,mostHR:7,hrPerMonth:5.7,rbi:50,avg:.247,slg:.472,ops:.820,stolenBases:6}},
-    {name:'James Wood',pos:'CF',mlbTeam:'WSH',mlbId:695578,stats:{homeRuns:12,mostHR:5,hrPerMonth:4.0,rbi:40,avg:.262,slg:.432,ops:.785,stolenBases:14}},
-    {name:'Bobby Witt Jr.',pos:'SS',mlbTeam:'KC',mlbId:677951,stats:{homeRuns:13,mostHR:6,hrPerMonth:4.3,rbi:52,avg:.279,slg:.460,ops:.832,stolenBases:22}},
-    {name:'Elly De La Cruz',pos:'SS',mlbTeam:'CIN',mlbId:682829,stats:{homeRuns:14,mostHR:6,hrPerMonth:4.7,rbi:44,avg:.244,slg:.438,ops:.772,stolenBases:35}},
-    {name:'Junior Caminero',pos:'3B',mlbTeam:'TB',mlbId:691406,stats:{homeRuns:15,mostHR:7,hrPerMonth:5.0,rbi:46,avg:.262,slg:.450,ops:.798,stolenBases:4}},
-    {name:'Pete Crow-Armstrong',pos:'CF',mlbTeam:'CHC',mlbId:691718,stats:{homeRuns:14,mostHR:6,hrPerMonth:4.7,rbi:42,avg:.261,slg:.447,ops:.782,stolenBases:18}},
-    {name:'Brent Rooker',pos:'DH',mlbTeam:'OAK',mlbId:667670,stats:{homeRuns:15,mostHR:7,hrPerMonth:5.0,rbi:48,avg:.238,slg:.452,ops:.798,stolenBases:2}},
-    {name:'Kyle Tucker',pos:'RF',mlbTeam:'HOU',mlbId:663656,stats:{homeRuns:13,mostHR:6,hrPerMonth:4.3,rbi:48,avg:.272,slg:.448,ops:.832,stolenBases:8}},
-    {name:'Fernando Tatis Jr.',pos:'RF',mlbTeam:'SD',mlbId:665487,stats:{homeRuns:16,mostHR:7,hrPerMonth:5.3,rbi:50,avg:.265,slg:.468,ops:.842,stolenBases:12}},
-    {name:'Manny Machado',pos:'3B',mlbTeam:'SD',mlbId:592518,stats:{homeRuns:12,mostHR:5,hrPerMonth:4.0,rbi:48,avg:.262,slg:.438,ops:.808,stolenBases:2}},
-    {name:'Austin Riley',pos:'3B',mlbTeam:'ATL',mlbId:663586,stats:{homeRuns:13,mostHR:6,hrPerMonth:4.3,rbi:52,avg:.255,slg:.448,ops:.808,stolenBases:2}},
-    {name:'Pete Alonso',pos:'1B',mlbTeam:'BAL',mlbId:624413,stats:{homeRuns:22,mostHR:9,hrPerMonth:7.3,rbi:68,avg:.249,slg:.482,ops:.815,stolenBases:0}},
-    {name:'Matt Olson',pos:'1B',mlbTeam:'ATL',mlbId:621566,stats:{homeRuns:21,mostHR:9,hrPerMonth:7.0,rbi:65,avg:.241,slg:.480,ops:.820,stolenBases:0}},
-    {name:'Rafael Devers',pos:'3B',mlbTeam:'BOS',mlbId:646240,stats:{homeRuns:17,mostHR:8,hrPerMonth:5.7,rbi:55,avg:.258,slg:.462,ops:.822,stolenBases:1}},
-    {name:'Eugenio Suarez',pos:'DH',mlbTeam:'CIN',mlbId:553993,stats:{homeRuns:18,mostHR:8,hrPerMonth:6.0,rbi:52,avg:.238,slg:.450,ops:.788,stolenBases:1}},
-    {name:'Freddie Freeman',pos:'1B',mlbTeam:'LAD',mlbId:518692,stats:{homeRuns:13,mostHR:5,hrPerMonth:4.3,rbi:51,avg:.292,slg:.448,ops:.858,stolenBases:5}},
-    {name:'Corey Seager',pos:'SS',mlbTeam:'TEX',mlbId:608369,stats:{homeRuns:13,mostHR:6,hrPerMonth:4.3,rbi:46,avg:.268,slg:.445,ops:.822,stolenBases:1}},
-    {name:'Francisco Lindor',pos:'SS',mlbTeam:'NYM',mlbId:596019,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:44,avg:.262,slg:.432,ops:.785,stolenBases:10}},
-    {name:'Jazz Chisholm Jr.',pos:'3B',mlbTeam:'NYY',mlbId:665862,stats:{homeRuns:13,mostHR:6,hrPerMonth:4.3,rbi:44,avg:.252,slg:.442,ops:.792,stolenBases:14}},
-    {name:'Michael Busch',pos:'1B',mlbTeam:'CHC',mlbId:683737,stats:{homeRuns:13,mostHR:6,hrPerMonth:4.3,rbi:46,avg:.248,slg:.440,ops:.788,stolenBases:3}},
-    {name:'Jackson Chourio',pos:'OF',mlbTeam:'MIL',mlbId:694192,stats:{homeRuns:13,mostHR:6,hrPerMonth:4.3,rbi:42,avg:.262,slg:.440,ops:.785,stolenBases:12}},
-    {name:'Seiya Suzuki',pos:'RF',mlbTeam:'CHC',mlbId:673548,stats:{homeRuns:11,mostHR:4,hrPerMonth:3.7,rbi:40,avg:.278,slg:.428,ops:.792,stolenBases:4}},
-    {name:'Ian Happ',pos:'LF',mlbTeam:'CHC',mlbId:664023,stats:{homeRuns:11,mostHR:4,hrPerMonth:3.7,rbi:40,avg:.248,slg:.420,ops:.775,stolenBases:5}},
-    {name:'Julio Rodriguez',pos:'CF',mlbTeam:'SEA',mlbId:677594,stats:{homeRuns:12,mostHR:5,hrPerMonth:4.0,rbi:40,avg:.258,slg:.428,ops:.778,stolenBases:16}},
-    {name:'Randy Arozarena',pos:'LF',mlbTeam:'SEA',mlbId:668227,stats:{homeRuns:12,mostHR:5,hrPerMonth:4.0,rbi:44,avg:.252,slg:.428,ops:.778,stolenBases:18}},
-    {name:'Willy Adames',pos:'SS',mlbTeam:'SF',mlbId:642715,stats:{homeRuns:12,mostHR:5,hrPerMonth:4.0,rbi:46,avg:.248,slg:.432,ops:.778,stolenBases:4}},
-    {name:'Christian Walker',pos:'1B',mlbTeam:'ARI',mlbId:572233,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:44,avg:.252,slg:.425,ops:.775,stolenBases:2}},
-    {name:'Jorge Soler',pos:'DH',mlbTeam:'LAA',mlbId:624585,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:40,avg:.238,slg:.428,ops:.768,stolenBases:1}},
-    {name:'Max Muncy',pos:'3B',mlbTeam:'LAD',mlbId:571970,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:40,avg:.235,slg:.428,ops:.778,stolenBases:2}},
-    {name:'Matt Chapman',pos:'3B',mlbTeam:'SF',mlbId:656305,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:38,avg:.248,slg:.415,ops:.762,stolenBases:4}},
-    {name:'Ozzie Albies',pos:'2B',mlbTeam:'ATL',mlbId:645277,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:36,avg:.258,slg:.418,ops:.768,stolenBases:6}},
-    {name:'Zach Neto',pos:'SS',mlbTeam:'LAA',mlbId:687263,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:34,avg:.248,slg:.412,ops:.758,stolenBases:8}},
-    {name:'Kerry Carpenter',pos:'LF',mlbTeam:'DET',mlbId:681481,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:36,avg:.258,slg:.418,ops:.768,stolenBases:2}},
-    {name:'Adley Rutschman',pos:'C',mlbTeam:'BAL',mlbId:668939,stats:{homeRuns:11,mostHR:4,hrPerMonth:3.7,rbi:38,avg:.254,slg:.420,ops:.800,stolenBases:2}},
-    {name:'William Contreras',pos:'C',mlbTeam:'MIL',mlbId:661388,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:36,avg:.258,slg:.415,ops:.772,stolenBases:2}},
-    {name:'Christian Yelich',pos:'LF',mlbTeam:'MIL',mlbId:592885,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:42,avg:.275,slg:.432,ops:.812,stolenBases:6}},
-    {name:'Alec Burleson',pos:'OF',mlbTeam:'STL',mlbId:676475,stats:{homeRuns:14,mostHR:7,hrPerMonth:4.7,rbi:46,avg:.268,slg:.445,ops:.798,stolenBases:3}},
-    {name:'Mike Trout',pos:'CF',mlbTeam:'LAA',mlbId:545361,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:38,avg:.252,slg:.432,ops:.808,stolenBases:2}},
-    {name:'Teoscar Hernandez',pos:'RF',mlbTeam:'LAD',mlbId:606192,stats:{homeRuns:12,mostHR:5,hrPerMonth:4.0,rbi:44,avg:.258,slg:.435,ops:.782,stolenBases:4}},
-    {name:'George Springer',pos:'CF',mlbTeam:'TOR',mlbId:543807,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:36,avg:.252,slg:.415,ops:.762,stolenBases:6}},
-    {name:'Brandon Lowe',pos:'2B',mlbTeam:'PIT',mlbId:664040,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.242,slg:.395,ops:.732,stolenBases:4}},
-    {name:'Josh Naylor',pos:'1B',mlbTeam:'SEA',mlbId:647304,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:44,avg:.262,slg:.428,ops:.778,stolenBases:2}},
-    {name:'Spencer Steer',pos:'1B',mlbTeam:'CIN',mlbId:668715,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:34,avg:.252,slg:.408,ops:.748,stolenBases:4}},
-    {name:'Heliot Ramos',pos:'RF',mlbTeam:'SF',mlbId:671218,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:40,avg:.262,slg:.425,ops:.775,stolenBases:8}},
-    {name:'Riley Greene',pos:'LF',mlbTeam:'DET',mlbId:682985,stats:{homeRuns:13,mostHR:6,hrPerMonth:4.3,rbi:38,avg:.268,slg:.428,ops:.778,stolenBases:8}},
-    {name:'Trent Grisham',pos:'CF',mlbTeam:'NYY',mlbId:663757,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:30,avg:.238,slg:.405,ops:.742,stolenBases:8}},
-    {name:'Jo Adell',pos:'LF',mlbTeam:'LAA',mlbId:666176,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:34,avg:.242,slg:.415,ops:.755,stolenBases:8}},
-    {name:'Vinnie Pasquantino',pos:'1B',mlbTeam:'KC',mlbId:686469,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:44,avg:.268,slg:.428,ops:.785,stolenBases:0}},
-    {name:'Taylor Ward',pos:'RF',mlbTeam:'LAA',mlbId:621493,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:36,avg:.252,slg:.415,ops:.758,stolenBases:4}},
-    {name:'Anthony Santander',pos:'RF',mlbTeam:'TOR',mlbId:623993,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:36,avg:.248,slg:.415,ops:.758,stolenBases:2}},
-    {name:'Kyle Manzardo',pos:'1B',mlbTeam:'CLE',mlbId:700932,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:32,avg:.248,slg:.408,ops:.752,stolenBases:1}},
-    {name:'Dansby Swanson',pos:'SS',mlbTeam:'CHC',mlbId:621020,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:30,avg:.248,slg:.398,ops:.738,stolenBases:6}},
-    {name:'Andy Pages',pos:'RF',mlbTeam:'LAD',mlbId:681624,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:32,avg:.252,slg:.408,ops:.748,stolenBases:4}},
-    {name:'Bo Bichette',pos:'3B',mlbTeam:'NYM',mlbId:666182,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:34,avg:.262,slg:.408,ops:.755,stolenBases:6}},
-    {name:'Addison Barger',pos:'3B',mlbTeam:'TOR',mlbId:680718,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:32,avg:.255,slg:.408,ops:.748,stolenBases:4}},
-    {name:'Jorge Polanco',pos:'1B',mlbTeam:'NYM',mlbId:593871,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:30,avg:.248,slg:.398,ops:.742,stolenBases:2}},
-    {name:'Nick Kurtz',pos:'1B',mlbTeam:'OAK',mlbId:701762,stats:{homeRuns:16,mostHR:5,hrPerMonth:5.3,rbi:48,avg:.255,slg:.455,ops:.808,stolenBases:3}},
-    {name:'Jac Caglianone',pos:'1B',mlbTeam:'KC',mlbId:695506,stats:{homeRuns:15,mostHR:7,hrPerMonth:5.0,rbi:38,avg:.245,slg:.445,ops:.782,stolenBases:2}},
-    {name:'Roman Anthony',pos:'LF',mlbTeam:'BOS',mlbId:701350,stats:{homeRuns:4,mostHR:2,hrPerMonth:1.3,rbi:18,avg:.268,slg:.362,ops:.748,stolenBases:6}},
-    {name:'Ben Rice',pos:'1B',mlbTeam:'NYY',mlbId:700250,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:32,avg:.248,slg:.415,ops:.762,stolenBases:1}},
-    {name:'Chase DeLauter',pos:'RF',mlbTeam:'CLE',mlbId:800050,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:35,avg:.252,slg:.415,ops:.762,stolenBases:4}},
-    {name:'Kyle Stowers',pos:'LF',mlbTeam:'BAL',mlbId:680757,stats:{homeRuns:12,mostHR:5,hrPerMonth:4.0,rbi:38,avg:.248,slg:.425,ops:.768,stolenBases:6}},
-    {name:'Wilyer Abreu',pos:'RF',mlbTeam:'BOS',mlbId:677800,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.255,slg:.398,ops:.738,stolenBases:8}},
-    {name:'Mickey Moniak',pos:'RF',mlbTeam:'COL',mlbId:666160,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:30,avg:.248,slg:.405,ops:.742,stolenBases:6}},
-    {name:'Noelvi Marte',pos:'SS',mlbTeam:'CIN',mlbId:694193,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:26,avg:.248,slg:.382,ops:.722,stolenBases:6}},
-    {name:'Jackson Holliday',pos:'SS',mlbTeam:'BAL',mlbId:702616,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.248,slg:.398,ops:.735,stolenBases:6}},
-    {name:'Ezequiel Tovar',pos:'SS',mlbTeam:'COL',mlbId:678662,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:32,avg:.255,slg:.405,ops:.742,stolenBases:6}},
-    {name:'Colson Montgomery',pos:'SS',mlbTeam:'CWS',mlbId:695657,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.242,slg:.395,ops:.732,stolenBases:4}},
-    {name:'Matt McLain',pos:'SS',mlbTeam:'CIN',mlbId:694096,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.255,slg:.368,ops:.715,stolenBases:10}},
-    {name:'Jordan Lawlar',pos:'SS',mlbTeam:'ARI',mlbId:694190,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.258,slg:.372,ops:.718,stolenBases:14}},
-    {name:'Brooks Lee',pos:'SS',mlbTeam:'MIN',mlbId:694194,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.252,slg:.368,ops:.715,stolenBases:4}},
-    {name:'Masyn Winn',pos:'SS',mlbTeam:'STL',mlbId:694597,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:22,avg:.255,slg:.358,ops:.705,stolenBases:12}},
-    {name:'Anthony Volpe',pos:'SS',mlbTeam:'NYY',mlbId:694192,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.242,slg:.392,ops:.728,stolenBases:18}},
-    {name:'Royce Lewis',pos:'SS',mlbTeam:'MIN',mlbId:668679,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:32,avg:.258,slg:.408,ops:.748,stolenBases:6}},
-    {name:'Trea Turner',pos:'SS',mlbTeam:'PHI',mlbId:607208,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:32,avg:.262,slg:.398,ops:.742,stolenBases:16}},
-    {name:'Ha-seong Kim',pos:'SS',mlbTeam:'SD',mlbId:673490,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.248,slg:.368,ops:.712,stolenBases:14}},
-    {name:'Oswaldo Cabrera',pos:'SS',mlbTeam:'NYY',mlbId:665926,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:20,avg:.242,slg:.352,ops:.698,stolenBases:6}},
-    {name:'Nolan Gorman',pos:'2B',mlbTeam:'STL',mlbId:669004,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:32,avg:.235,slg:.408,ops:.748,stolenBases:2}},
-    {name:'Gleyber Torres',pos:'2B',mlbTeam:'DET',mlbId:650402,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.252,slg:.388,ops:.728,stolenBases:4}},
-    {name:'Tommy Edman',pos:'2B',mlbTeam:'LAD',mlbId:669242,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.262,slg:.372,ops:.718,stolenBases:16}},
-    {name:'Gavin Lux',pos:'2B',mlbTeam:'LAD',mlbId:666157,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.252,slg:.368,ops:.712,stolenBases:6}},
-    {name:'Nico Hoerner',pos:'2B',mlbTeam:'CHC',mlbId:663538,stats:{homeRuns:4,mostHR:2,hrPerMonth:1.3,rbi:20,avg:.272,slg:.355,ops:.705,stolenBases:12}},
-    {name:'Brendan Donovan',pos:'2B',mlbTeam:'STL',mlbId:680977,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:22,avg:.265,slg:.358,ops:.712,stolenBases:6}},
-    {name:'Wenceel Perez',pos:'2B',mlbTeam:'DET',mlbId:666215,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:22,avg:.268,slg:.368,ops:.712,stolenBases:12}},
-    {name:'Luis Arraez',pos:'2B',mlbTeam:'SD',mlbId:650333,stats:{homeRuns:2,mostHR:1,hrPerMonth:0.7,rbi:18,avg:.315,slg:.338,ops:.758,stolenBases:2}},
-    {name:'Tyler Freeman',pos:'2B',mlbTeam:'CLE',mlbId:669243,stats:{homeRuns:4,mostHR:1,hrPerMonth:1.3,rbi:20,avg:.268,slg:.345,ops:.698,stolenBases:8}},
-    {name:'Ji Hwan Bae',pos:'2B',mlbTeam:'PIT',mlbId:681482,stats:{homeRuns:3,mostHR:1,hrPerMonth:1.0,rbi:16,avg:.262,slg:.325,ops:.688,stolenBases:18}},
-    {name:'Myles Straw',pos:'CF',mlbTeam:'CLE',mlbId:657131,stats:{homeRuns:2,mostHR:1,hrPerMonth:0.7,rbi:14,avg:.248,slg:.312,ops:.668,stolenBases:16}},
-    {name:'Esteury Ruiz',pos:'CF',mlbTeam:'OAK',mlbId:669809,stats:{homeRuns:4,mostHR:1,hrPerMonth:1.3,rbi:18,avg:.255,slg:.342,ops:.695,stolenBases:22}},
-    {name:'Jonatan Clase',pos:'CF',mlbTeam:'SEA',mlbId:694174,stats:{homeRuns:4,mostHR:1,hrPerMonth:1.3,rbi:18,avg:.255,slg:.342,ops:.695,stolenBases:24}},
-    {name:'Jarren Duran',pos:'CF',mlbTeam:'BOS',mlbId:680776,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.258,slg:.372,ops:.718,stolenBases:18}},
-    {name:'Kevin Kiermaier',pos:'CF',mlbTeam:'TOR',mlbId:595281,stats:{homeRuns:4,mostHR:1,hrPerMonth:1.3,rbi:16,avg:.235,slg:.328,ops:.678,stolenBases:8}},
-    {name:'Manuel Margot',pos:'RF',mlbTeam:'MIN',mlbId:622110,stats:{homeRuns:4,mostHR:1,hrPerMonth:1.3,rbi:18,avg:.255,slg:.342,ops:.692,stolenBases:10}},
-    {name:'Leody Taveras',pos:'CF',mlbTeam:'TEX',mlbId:665750,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:20,avg:.252,slg:.352,ops:.698,stolenBases:16}},
-    {name:'Cedric Mullins',pos:'CF',mlbTeam:'BAL',mlbId:656775,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.248,slg:.368,ops:.715,stolenBases:12}},
-    {name:'Brandon Nimmo',pos:'CF',mlbTeam:'NYM',mlbId:607043,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.258,slg:.392,ops:.755,stolenBases:4}},
-    {name:'Starling Marte',pos:'RF',mlbTeam:'NYM',mlbId:516782,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:22,avg:.258,slg:.358,ops:.705,stolenBases:10}},
-    {name:'Jurickson Profar',pos:'LF',mlbTeam:'LAD',mlbId:595777,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:26,avg:.258,slg:.385,ops:.728,stolenBases:6}},
-    {name:'Andrew Benintendi',pos:'LF',mlbTeam:'CWS',mlbId:571671,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:22,avg:.255,slg:.355,ops:.702,stolenBases:6}},
-    {name:'Mark Canha',pos:'OF',mlbTeam:'DET',mlbId:572287,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:22,avg:.248,slg:.368,ops:.718,stolenBases:2}},
-    {name:'Luke Raley',pos:'LF',mlbTeam:'SEA',mlbId:664024,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.242,slg:.392,ops:.728,stolenBases:6}},
-    {name:'Ramon Laureano',pos:'RF',mlbTeam:'SD',mlbId:657656,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:26,avg:.248,slg:.382,ops:.722,stolenBases:6}},
-    {name:'Nolan Jones',pos:'RF',mlbTeam:'COL',mlbId:666152,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.245,slg:.392,ops:.728,stolenBases:10}},
-    {name:'Steven Kwan',pos:'LF',mlbTeam:'CLE',mlbId:680757,stats:{homeRuns:4,mostHR:2,hrPerMonth:1.3,rbi:22,avg:.285,slg:.368,ops:.748,stolenBases:14}},
-    {name:'Lane Thomas',pos:'RF',mlbTeam:'WSH',mlbId:641933,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.245,slg:.392,ops:.728,stolenBases:8}},
-    {name:'Austin Hays',pos:'LF',mlbTeam:'PHI',mlbId:664232,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:26,avg:.248,slg:.382,ops:.722,stolenBases:4}},
-    {name:'Max Kepler',pos:'RF',mlbTeam:'PHI',mlbId:596142,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.245,slg:.395,ops:.732,stolenBases:2}},
-    {name:'Christopher Morel',pos:'OF',mlbTeam:'CHC',mlbId:666624,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.238,slg:.395,ops:.728,stolenBases:8}},
-    {name:'Enrique Hernandez',pos:'2B',mlbTeam:'BOS',mlbId:571771,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:22,avg:.248,slg:.368,ops:.708,stolenBases:4}},
-    {name:'Joey Meneses',pos:'1B',mlbTeam:'WSH',mlbId:665491,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:30,avg:.258,slg:.398,ops:.738,stolenBases:1}},
-    {name:'Ryan Noda',pos:'1B',mlbTeam:'OAK',mlbId:669002,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:22,avg:.225,slg:.368,ops:.712,stolenBases:2}},
-    {name:'Rhys Hoskins',pos:'1B',mlbTeam:'MIL',mlbId:543333,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:30,avg:.235,slg:.398,ops:.735,stolenBases:1}},
-    {name:'Paul Goldschmidt',pos:'1B',mlbTeam:'NYY',mlbId:502671,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.245,slg:.388,ops:.728,stolenBases:2}},
-    {name:'Jose Abreu',pos:'1B',mlbTeam:'HOU',mlbId:547989,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.238,slg:.382,ops:.718,stolenBases:0}},
-    {name:'Andrew McCutchen',pos:'DH',mlbTeam:'PIT',mlbId:457705,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.245,slg:.368,ops:.712,stolenBases:4}},
-    {name:'Nelson Cruz',pos:'DH',mlbTeam:'SD',mlbId:543685,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:22,avg:.235,slg:.365,ops:.705,stolenBases:0}},
-    {name:'Dylan Carlson',pos:'OF',mlbTeam:'STL',mlbId:678211,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:22,avg:.248,slg:.368,ops:.712,stolenBases:6}},
-    {name:'Jesús Sánchez',pos:'LF',mlbTeam:'MIA',mlbId:660821,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:26,avg:.245,slg:.382,ops:.722,stolenBases:4}},
-    {name:'Bryan De La Cruz',pos:'OF',mlbTeam:'MIA',mlbId:672710,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.252,slg:.385,ops:.728,stolenBases:4}},
-    {name:'Geraldo Perdomo',pos:'SS',mlbTeam:'ARI',mlbId:661389,stats:{homeRuns:4,mostHR:1,hrPerMonth:1.3,rbi:18,avg:.252,slg:.342,ops:.692,stolenBases:8}},
-    {name:'Jose Miranda',pos:'3B',mlbTeam:'MIN',mlbId:669006,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.252,slg:.385,ops:.728,stolenBases:1}},
-    {name:'Ryan McMahon',pos:'3B',mlbTeam:'COL',mlbId:641857,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:30,avg:.242,slg:.395,ops:.732,stolenBases:4}},
-    {name:'Alec Bohm',pos:'3B',mlbTeam:'PHI',mlbId:664761,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.258,slg:.385,ops:.728,stolenBases:2}},
-    {name:'Josh Jung',pos:'3B',mlbTeam:'TEX',mlbId:672515,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.248,slg:.388,ops:.732,stolenBases:2}},
-    {name:'Nathaniel Lowe',pos:'1B',mlbTeam:'TEX',mlbId:663993,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:30,avg:.262,slg:.388,ops:.738,stolenBases:2}},
-    {name:'Victor Caratini',pos:'C',mlbTeam:'HOU',mlbId:623911,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:22,avg:.245,slg:.358,ops:.702,stolenBases:0}},
-    {name:'Kyle Higashioka',pos:'C',mlbTeam:'SD',mlbId:595978,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:18,avg:.222,slg:.348,ops:.688,stolenBases:0}},
-    {name:'Danny Jansen',pos:'C',mlbTeam:'BOS',mlbId:642207,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:22,avg:.235,slg:.362,ops:.705,stolenBases:0}},
-    {name:'Patrick Bailey',pos:'C',mlbTeam:'SF',mlbId:663887,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:20,avg:.235,slg:.352,ops:.695,stolenBases:2}},
-    {name:'Jose Trevino',pos:'C',mlbTeam:'NYY',mlbId:650401,stats:{homeRuns:4,mostHR:1,hrPerMonth:1.3,rbi:18,avg:.232,slg:.332,ops:.682,stolenBases:0}},
-    {name:'MJ Melendez',pos:'C',mlbTeam:'KC',mlbId:669003,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:26,avg:.232,slg:.380,ops:.715,stolenBases:4}},
-    {name:'Tyler Stephenson',pos:'C',mlbTeam:'CIN',mlbId:663886,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:34,avg:.272,slg:.415,ops:.772,stolenBases:1}},
-    {name:'Francisco Alvarez',pos:'C',mlbTeam:'NYM',mlbId:682626,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:32,avg:.248,slg:.408,ops:.748,stolenBases:1}},
-    {name:'Sean Murphy',pos:'C',mlbTeam:'ATL',mlbId:669015,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.238,slg:.392,ops:.728,stolenBases:1}},
-    {name:'Ryan Jeffers',pos:'C',mlbTeam:'MIN',mlbId:680777,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.235,slg:.392,ops:.728,stolenBases:1}},
-    {name:'Austin Wells',pos:'C',mlbTeam:'NYY',mlbId:688898,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.242,slg:.392,ops:.728,stolenBases:2}},
-    {name:'Bo Naylor',pos:'C',mlbTeam:'CLE',mlbId:669005,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:24,avg:.232,slg:.382,ops:.718,stolenBases:4}},
-    {name:'Logan OHoppe',pos:'C',mlbTeam:'LAA',mlbId:687742,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.242,slg:.392,ops:.728,stolenBases:2}},
-    {name:'Connor Wong',pos:'C',mlbTeam:'BOS',mlbId:671217,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:22,avg:.238,slg:.362,ops:.705,stolenBases:4}},
-    {name:'Nick Fortes',pos:'C',mlbTeam:'MIA',mlbId:660623,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:20,avg:.238,slg:.355,ops:.698,stolenBases:1}},
-    {name:'Gary Sanchez',pos:'C',mlbTeam:'MIL',mlbId:596143,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:24,avg:.228,slg:.378,ops:.715,stolenBases:0}},
-    // ── ADDITIONAL DEPTH (reaching ~400 total) ──
-    {name:'Oneil Cruz',pos:'CF',mlbTeam:'PIT',mlbId:665833,stats:{homeRuns:13,mostHR:6,hrPerMonth:4.3,rbi:42,avg:.248,slg:.440,ops:.778,stolenBases:16}},
-    {name:'CJ Abrams',pos:'SS',mlbTeam:'WSH',mlbId:682928,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:30,avg:.255,slg:.405,ops:.748,stolenBases:18}},
-    {name:'Jake Burger',pos:'3B',mlbTeam:'TEX',mlbId:669394,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:40,avg:.242,slg:.422,ops:.762,stolenBases:1}},
-    {name:'Spencer Torkelson',pos:'1B',mlbTeam:'DET',mlbId:679529,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:36,avg:.245,slg:.412,ops:.755,stolenBases:1}},
-    {name:'Corbin Carroll',pos:'CF',mlbTeam:'ARI',mlbId:682998,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:36,avg:.268,slg:.418,ops:.778,stolenBases:22}},
-    {name:'Wyatt Langford',pos:'LF',mlbTeam:'TEX',mlbId:694671,stats:{homeRuns:12,mostHR:5,hrPerMonth:4.0,rbi:44,avg:.265,slg:.438,ops:.798,stolenBases:10}},
-    {name:'Gunnar Henderson',pos:'SS',mlbTeam:'BAL',mlbId:683002,stats:{homeRuns:17,mostHR:7,hrPerMonth:5.7,rbi:50,avg:.247,slg:.472,ops:.820,stolenBases:6}},
-    {name:'James Wood',pos:'CF',mlbTeam:'WSH',mlbId:695578,stats:{homeRuns:12,mostHR:5,hrPerMonth:4.0,rbi:40,avg:.262,slg:.432,ops:.785,stolenBases:14}},
-    {name:'Bobby Witt Jr.',pos:'SS',mlbTeam:'KC',mlbId:677951,stats:{homeRuns:13,mostHR:6,hrPerMonth:4.3,rbi:52,avg:.279,slg:.460,ops:.832,stolenBases:22}},
-    {name:'Elly De La Cruz',pos:'SS',mlbTeam:'CIN',mlbId:682829,stats:{homeRuns:14,mostHR:6,hrPerMonth:4.7,rbi:44,avg:.244,slg:.438,ops:.772,stolenBases:35}},
-    {name:'Junior Caminero',pos:'3B',mlbTeam:'TB',mlbId:691406,stats:{homeRuns:15,mostHR:7,hrPerMonth:5.0,rbi:46,avg:.262,slg:.450,ops:.798,stolenBases:4}},
-    {name:'Pete Crow-Armstrong',pos:'CF',mlbTeam:'CHC',mlbId:691718,stats:{homeRuns:14,mostHR:6,hrPerMonth:4.7,rbi:42,avg:.261,slg:.447,ops:.782,stolenBases:18}},
-    {name:'Brent Rooker',pos:'DH',mlbTeam:'OAK',mlbId:667670,stats:{homeRuns:15,mostHR:7,hrPerMonth:5.0,rbi:48,avg:.238,slg:.452,ops:.798,stolenBases:2}},
-    {name:'Kyle Tucker',pos:'RF',mlbTeam:'HOU',mlbId:663656,stats:{homeRuns:13,mostHR:6,hrPerMonth:4.3,rbi:48,avg:.272,slg:.448,ops:.832,stolenBases:8}},
-    {name:'Fernando Tatis Jr.',pos:'RF',mlbTeam:'SD',mlbId:665487,stats:{homeRuns:16,mostHR:7,hrPerMonth:5.3,rbi:50,avg:.265,slg:.468,ops:.842,stolenBases:12}},
-    {name:'Manny Machado',pos:'3B',mlbTeam:'SD',mlbId:592518,stats:{homeRuns:12,mostHR:5,hrPerMonth:4.0,rbi:48,avg:.262,slg:.438,ops:.808,stolenBases:2}},
-    {name:'Austin Riley',pos:'3B',mlbTeam:'ATL',mlbId:663586,stats:{homeRuns:13,mostHR:6,hrPerMonth:4.3,rbi:52,avg:.255,slg:.448,ops:.808,stolenBases:2}},
-    {name:'Pete Alonso',pos:'1B',mlbTeam:'BAL',mlbId:624413,stats:{homeRuns:22,mostHR:9,hrPerMonth:7.3,rbi:68,avg:.249,slg:.482,ops:.815,stolenBases:0}},
-    {name:'Matt Olson',pos:'1B',mlbTeam:'ATL',mlbId:621566,stats:{homeRuns:21,mostHR:9,hrPerMonth:7.0,rbi:65,avg:.241,slg:.480,ops:.820,stolenBases:0}},
-    {name:'Rafael Devers',pos:'3B',mlbTeam:'BOS',mlbId:646240,stats:{homeRuns:17,mostHR:8,hrPerMonth:5.7,rbi:55,avg:.258,slg:.462,ops:.822,stolenBases:1}},
-    {name:'Eugenio Suarez',pos:'DH',mlbTeam:'CIN',mlbId:553993,stats:{homeRuns:18,mostHR:8,hrPerMonth:6.0,rbi:52,avg:.238,slg:.450,ops:.788,stolenBases:1}},
-    {name:'Freddie Freeman',pos:'1B',mlbTeam:'LAD',mlbId:518692,stats:{homeRuns:13,mostHR:5,hrPerMonth:4.3,rbi:51,avg:.292,slg:.448,ops:.858,stolenBases:5}},
-    {name:'Corey Seager',pos:'SS',mlbTeam:'TEX',mlbId:608369,stats:{homeRuns:13,mostHR:6,hrPerMonth:4.3,rbi:46,avg:.268,slg:.445,ops:.822,stolenBases:1}},
-    {name:'Francisco Lindor',pos:'SS',mlbTeam:'NYM',mlbId:596019,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:44,avg:.262,slg:.432,ops:.785,stolenBases:10}},
-    {name:'Jazz Chisholm Jr.',pos:'3B',mlbTeam:'NYY',mlbId:665862,stats:{homeRuns:13,mostHR:6,hrPerMonth:4.3,rbi:44,avg:.252,slg:.442,ops:.792,stolenBases:14}},
-    {name:'Michael Busch',pos:'1B',mlbTeam:'CHC',mlbId:683737,stats:{homeRuns:13,mostHR:6,hrPerMonth:4.3,rbi:46,avg:.248,slg:.440,ops:.788,stolenBases:3}},
-    {name:'Jackson Chourio',pos:'OF',mlbTeam:'MIL',mlbId:694192,stats:{homeRuns:13,mostHR:6,hrPerMonth:4.3,rbi:42,avg:.262,slg:.440,ops:.785,stolenBases:12}},
-    {name:'Seiya Suzuki',pos:'RF',mlbTeam:'CHC',mlbId:673548,stats:{homeRuns:11,mostHR:4,hrPerMonth:3.7,rbi:40,avg:.278,slg:.428,ops:.792,stolenBases:4}},
-    {name:'Ian Happ',pos:'LF',mlbTeam:'CHC',mlbId:664023,stats:{homeRuns:11,mostHR:4,hrPerMonth:3.7,rbi:40,avg:.248,slg:.420,ops:.775,stolenBases:5}},
-    {name:'Julio Rodriguez',pos:'CF',mlbTeam:'SEA',mlbId:677594,stats:{homeRuns:12,mostHR:5,hrPerMonth:4.0,rbi:40,avg:.258,slg:.428,ops:.778,stolenBases:16}},
-    {name:'Randy Arozarena',pos:'LF',mlbTeam:'SEA',mlbId:668227,stats:{homeRuns:12,mostHR:5,hrPerMonth:4.0,rbi:44,avg:.252,slg:.428,ops:.778,stolenBases:18}},
-    {name:'Willy Adames',pos:'SS',mlbTeam:'SF',mlbId:642715,stats:{homeRuns:12,mostHR:5,hrPerMonth:4.0,rbi:46,avg:.248,slg:.432,ops:.778,stolenBases:4}},
-    {name:'Christian Walker',pos:'1B',mlbTeam:'ARI',mlbId:572233,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:44,avg:.252,slg:.425,ops:.775,stolenBases:2}},
-    {name:'Jorge Soler',pos:'DH',mlbTeam:'LAA',mlbId:624585,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:40,avg:.238,slg:.428,ops:.768,stolenBases:1}},
-    {name:'Max Muncy',pos:'3B',mlbTeam:'LAD',mlbId:571970,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:40,avg:.235,slg:.428,ops:.778,stolenBases:2}},
-    {name:'Matt Chapman',pos:'3B',mlbTeam:'SF',mlbId:656305,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:38,avg:.248,slg:.415,ops:.762,stolenBases:4}},
-    {name:'Ozzie Albies',pos:'2B',mlbTeam:'ATL',mlbId:645277,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:36,avg:.258,slg:.418,ops:.768,stolenBases:6}},
-    {name:'Zach Neto',pos:'SS',mlbTeam:'LAA',mlbId:687263,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:34,avg:.248,slg:.412,ops:.758,stolenBases:8}},
-    {name:'Kerry Carpenter',pos:'LF',mlbTeam:'DET',mlbId:681481,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:36,avg:.258,slg:.418,ops:.768,stolenBases:2}},
-    {name:'Adley Rutschman',pos:'C',mlbTeam:'BAL',mlbId:668939,stats:{homeRuns:11,mostHR:4,hrPerMonth:3.7,rbi:38,avg:.254,slg:.420,ops:.800,stolenBases:2}},
-    {name:'William Contreras',pos:'C',mlbTeam:'MIL',mlbId:661388,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:36,avg:.258,slg:.415,ops:.772,stolenBases:2}},
-    {name:'Christian Yelich',pos:'LF',mlbTeam:'MIL',mlbId:592885,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:42,avg:.275,slg:.432,ops:.812,stolenBases:6}},
-    {name:'Alec Burleson',pos:'OF',mlbTeam:'STL',mlbId:676475,stats:{homeRuns:14,mostHR:7,hrPerMonth:4.7,rbi:46,avg:.268,slg:.445,ops:.798,stolenBases:3}},
-    {name:'Mike Trout',pos:'CF',mlbTeam:'LAA',mlbId:545361,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:38,avg:.252,slg:.432,ops:.808,stolenBases:2}},
-    {name:'Teoscar Hernandez',pos:'RF',mlbTeam:'LAD',mlbId:606192,stats:{homeRuns:12,mostHR:5,hrPerMonth:4.0,rbi:44,avg:.258,slg:.435,ops:.782,stolenBases:4}},
-    {name:'George Springer',pos:'CF',mlbTeam:'TOR',mlbId:543807,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:36,avg:.252,slg:.415,ops:.762,stolenBases:6}},
-    {name:'Brandon Lowe',pos:'2B',mlbTeam:'PIT',mlbId:664040,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.242,slg:.395,ops:.732,stolenBases:4}},
-    {name:'Josh Naylor',pos:'1B',mlbTeam:'SEA',mlbId:647304,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:44,avg:.262,slg:.428,ops:.778,stolenBases:2}},
-    {name:'Spencer Steer',pos:'1B',mlbTeam:'CIN',mlbId:668715,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:34,avg:.252,slg:.408,ops:.748,stolenBases:4}},
-    {name:'Heliot Ramos',pos:'RF',mlbTeam:'SF',mlbId:671218,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:40,avg:.262,slg:.425,ops:.775,stolenBases:8}},
-    {name:'Riley Greene',pos:'LF',mlbTeam:'DET',mlbId:682985,stats:{homeRuns:13,mostHR:6,hrPerMonth:4.3,rbi:38,avg:.268,slg:.428,ops:.778,stolenBases:8}},
-    {name:'Trent Grisham',pos:'CF',mlbTeam:'NYY',mlbId:663757,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:30,avg:.238,slg:.405,ops:.742,stolenBases:8}},
-    {name:'Jo Adell',pos:'LF',mlbTeam:'LAA',mlbId:666176,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:34,avg:.242,slg:.415,ops:.755,stolenBases:8}},
-    {name:'Vinnie Pasquantino',pos:'1B',mlbTeam:'KC',mlbId:686469,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:44,avg:.268,slg:.428,ops:.785,stolenBases:0}},
-    {name:'Taylor Ward',pos:'RF',mlbTeam:'LAA',mlbId:621493,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:36,avg:.252,slg:.415,ops:.758,stolenBases:4}},
-    {name:'Anthony Santander',pos:'RF',mlbTeam:'TOR',mlbId:623993,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:36,avg:.248,slg:.415,ops:.758,stolenBases:2}},
-    {name:'Kyle Manzardo',pos:'1B',mlbTeam:'CLE',mlbId:700932,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:32,avg:.248,slg:.408,ops:.752,stolenBases:1}},
-    {name:'Dansby Swanson',pos:'SS',mlbTeam:'CHC',mlbId:621020,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:30,avg:.248,slg:.398,ops:.738,stolenBases:6}},
-    {name:'Andy Pages',pos:'RF',mlbTeam:'LAD',mlbId:681624,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:32,avg:.252,slg:.408,ops:.748,stolenBases:4}},
-    {name:'Bo Bichette',pos:'3B',mlbTeam:'NYM',mlbId:666182,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:34,avg:.262,slg:.408,ops:.755,stolenBases:6}},
-    {name:'Addison Barger',pos:'3B',mlbTeam:'TOR',mlbId:680718,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:32,avg:.255,slg:.408,ops:.748,stolenBases:4}},
-    {name:'Jorge Polanco',pos:'1B',mlbTeam:'NYM',mlbId:593871,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:30,avg:.248,slg:.398,ops:.742,stolenBases:2}},
-    {name:'Nick Kurtz',pos:'1B',mlbTeam:'OAK',mlbId:701762,stats:{homeRuns:16,mostHR:5,hrPerMonth:5.3,rbi:48,avg:.255,slg:.455,ops:.808,stolenBases:3}},
-    {name:'Jac Caglianone',pos:'1B',mlbTeam:'KC',mlbId:695506,stats:{homeRuns:15,mostHR:7,hrPerMonth:5.0,rbi:38,avg:.245,slg:.445,ops:.782,stolenBases:2}},
-    {name:'Roman Anthony',pos:'LF',mlbTeam:'BOS',mlbId:701350,stats:{homeRuns:4,mostHR:2,hrPerMonth:1.3,rbi:18,avg:.268,slg:.362,ops:.748,stolenBases:6}},
-    {name:'Ben Rice',pos:'1B',mlbTeam:'NYY',mlbId:700250,stats:{homeRuns:10,mostHR:4,hrPerMonth:3.3,rbi:32,avg:.248,slg:.415,ops:.762,stolenBases:1}},
-    {name:'Chase DeLauter',pos:'RF',mlbTeam:'CLE',mlbId:800050,stats:{homeRuns:11,mostHR:5,hrPerMonth:3.7,rbi:35,avg:.252,slg:.415,ops:.762,stolenBases:4}},
-    {name:'Kyle Stowers',pos:'LF',mlbTeam:'BAL',mlbId:680757,stats:{homeRuns:12,mostHR:5,hrPerMonth:4.0,rbi:38,avg:.248,slg:.425,ops:.768,stolenBases:6}},
-    {name:'Wilyer Abreu',pos:'RF',mlbTeam:'BOS',mlbId:677800,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.255,slg:.398,ops:.738,stolenBases:8}},
-    {name:'Mickey Moniak',pos:'RF',mlbTeam:'COL',mlbId:666160,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:30,avg:.248,slg:.405,ops:.742,stolenBases:6}},
-    {name:'Noelvi Marte',pos:'SS',mlbTeam:'CIN',mlbId:694193,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:26,avg:.248,slg:.382,ops:.722,stolenBases:6}},
-    {name:'Jackson Holliday',pos:'SS',mlbTeam:'BAL',mlbId:702616,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.248,slg:.398,ops:.735,stolenBases:6}},
-    {name:'Ezequiel Tovar',pos:'SS',mlbTeam:'COL',mlbId:678662,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:32,avg:.255,slg:.405,ops:.742,stolenBases:6}},
-    {name:'Colson Montgomery',pos:'SS',mlbTeam:'CWS',mlbId:695657,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.242,slg:.395,ops:.732,stolenBases:4}},
-    {name:'Matt McLain',pos:'SS',mlbTeam:'CIN',mlbId:694096,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.255,slg:.368,ops:.715,stolenBases:10}},
-    {name:'Jordan Lawlar',pos:'SS',mlbTeam:'ARI',mlbId:694190,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.258,slg:.372,ops:.718,stolenBases:14}},
-    {name:'Brooks Lee',pos:'SS',mlbTeam:'MIN',mlbId:694194,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.252,slg:.368,ops:.715,stolenBases:4}},
-    {name:'Masyn Winn',pos:'SS',mlbTeam:'STL',mlbId:694597,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:22,avg:.255,slg:.358,ops:.705,stolenBases:12}},
-    {name:'Anthony Volpe',pos:'SS',mlbTeam:'NYY',mlbId:694192,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.242,slg:.392,ops:.728,stolenBases:18}},
-    {name:'Royce Lewis',pos:'SS',mlbTeam:'MIN',mlbId:668679,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:32,avg:.258,slg:.408,ops:.748,stolenBases:6}},
-    {name:'Trea Turner',pos:'SS',mlbTeam:'PHI',mlbId:607208,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:32,avg:.262,slg:.398,ops:.742,stolenBases:16}},
-    {name:'Ha-seong Kim',pos:'SS',mlbTeam:'SD',mlbId:673490,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.248,slg:.368,ops:.712,stolenBases:14}},
-    {name:'Oswaldo Cabrera',pos:'SS',mlbTeam:'NYY',mlbId:665926,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:20,avg:.242,slg:.352,ops:.698,stolenBases:6}},
-    {name:'Nolan Gorman',pos:'2B',mlbTeam:'STL',mlbId:669004,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:32,avg:.235,slg:.408,ops:.748,stolenBases:2}},
-    {name:'Gleyber Torres',pos:'2B',mlbTeam:'DET',mlbId:650402,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.252,slg:.388,ops:.728,stolenBases:4}},
-    {name:'Tommy Edman',pos:'2B',mlbTeam:'LAD',mlbId:669242,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.262,slg:.372,ops:.718,stolenBases:16}},
-    {name:'Gavin Lux',pos:'2B',mlbTeam:'LAD',mlbId:666157,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.252,slg:.368,ops:.712,stolenBases:6}},
-    {name:'Nico Hoerner',pos:'2B',mlbTeam:'CHC',mlbId:663538,stats:{homeRuns:4,mostHR:2,hrPerMonth:1.3,rbi:20,avg:.272,slg:.355,ops:.705,stolenBases:12}},
-    {name:'Brendan Donovan',pos:'2B',mlbTeam:'STL',mlbId:680977,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:22,avg:.265,slg:.358,ops:.712,stolenBases:6}},
-    {name:'Wenceel Perez',pos:'2B',mlbTeam:'DET',mlbId:666215,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:22,avg:.268,slg:.368,ops:.712,stolenBases:12}},
-    {name:'Luis Arraez',pos:'2B',mlbTeam:'SD',mlbId:650333,stats:{homeRuns:2,mostHR:1,hrPerMonth:0.7,rbi:18,avg:.315,slg:.338,ops:.758,stolenBases:2}},
-    {name:'Tyler Freeman',pos:'2B',mlbTeam:'CLE',mlbId:669243,stats:{homeRuns:4,mostHR:1,hrPerMonth:1.3,rbi:20,avg:.268,slg:.345,ops:.698,stolenBases:8}},
-    {name:'Ji Hwan Bae',pos:'2B',mlbTeam:'PIT',mlbId:681482,stats:{homeRuns:3,mostHR:1,hrPerMonth:1.0,rbi:16,avg:.262,slg:.325,ops:.688,stolenBases:18}},
-    {name:'Myles Straw',pos:'CF',mlbTeam:'CLE',mlbId:657131,stats:{homeRuns:2,mostHR:1,hrPerMonth:0.7,rbi:14,avg:.248,slg:.312,ops:.668,stolenBases:16}},
-    {name:'Esteury Ruiz',pos:'CF',mlbTeam:'OAK',mlbId:669809,stats:{homeRuns:4,mostHR:1,hrPerMonth:1.3,rbi:18,avg:.255,slg:.342,ops:.695,stolenBases:22}},
-    {name:'Jonatan Clase',pos:'CF',mlbTeam:'SEA',mlbId:694174,stats:{homeRuns:4,mostHR:1,hrPerMonth:1.3,rbi:18,avg:.255,slg:.342,ops:.695,stolenBases:24}},
-    {name:'Jarren Duran',pos:'CF',mlbTeam:'BOS',mlbId:680776,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.258,slg:.372,ops:.718,stolenBases:18}},
-    {name:'Kevin Kiermaier',pos:'CF',mlbTeam:'TOR',mlbId:595281,stats:{homeRuns:4,mostHR:1,hrPerMonth:1.3,rbi:16,avg:.235,slg:.328,ops:.678,stolenBases:8}},
-    {name:'Manuel Margot',pos:'RF',mlbTeam:'MIN',mlbId:622110,stats:{homeRuns:4,mostHR:1,hrPerMonth:1.3,rbi:18,avg:.255,slg:.342,ops:.692,stolenBases:10}},
-    {name:'Leody Taveras',pos:'CF',mlbTeam:'TEX',mlbId:665750,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:20,avg:.252,slg:.352,ops:.698,stolenBases:16}},
-    {name:'Cedric Mullins',pos:'CF',mlbTeam:'BAL',mlbId:656775,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.248,slg:.368,ops:.715,stolenBases:12}},
-    {name:'Brandon Nimmo',pos:'CF',mlbTeam:'NYM',mlbId:607043,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.258,slg:.392,ops:.755,stolenBases:4}},
-    {name:'Starling Marte',pos:'RF',mlbTeam:'NYM',mlbId:516782,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:22,avg:.258,slg:.358,ops:.705,stolenBases:10}},
-    {name:'Jurickson Profar',pos:'LF',mlbTeam:'LAD',mlbId:595777,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:26,avg:.258,slg:.385,ops:.728,stolenBases:6}},
-    {name:'Andrew Benintendi',pos:'LF',mlbTeam:'CWS',mlbId:571671,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:22,avg:.255,slg:.355,ops:.702,stolenBases:6}},
-    {name:'Mark Canha',pos:'OF',mlbTeam:'DET',mlbId:572287,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:22,avg:.248,slg:.368,ops:.718,stolenBases:2}},
-    {name:'Luke Raley',pos:'LF',mlbTeam:'SEA',mlbId:664024,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.242,slg:.392,ops:.728,stolenBases:6}},
-    {name:'Ramon Laureano',pos:'RF',mlbTeam:'SD',mlbId:657656,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:26,avg:.248,slg:.382,ops:.722,stolenBases:6}},
-    {name:'Nolan Jones',pos:'RF',mlbTeam:'COL',mlbId:666152,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.245,slg:.392,ops:.728,stolenBases:10}},
-    {name:'Steven Kwan',pos:'LF',mlbTeam:'CLE',mlbId:680757,stats:{homeRuns:4,mostHR:2,hrPerMonth:1.3,rbi:22,avg:.285,slg:.368,ops:.748,stolenBases:14}},
-    {name:'Lane Thomas',pos:'RF',mlbTeam:'WSH',mlbId:641933,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.245,slg:.392,ops:.728,stolenBases:8}},
-    {name:'Austin Hays',pos:'LF',mlbTeam:'PHI',mlbId:664232,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:26,avg:.248,slg:.382,ops:.722,stolenBases:4}},
-    {name:'Max Kepler',pos:'RF',mlbTeam:'PHI',mlbId:596142,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.245,slg:.395,ops:.732,stolenBases:2}},
-    {name:'Christopher Morel',pos:'OF',mlbTeam:'CHC',mlbId:666624,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.238,slg:.395,ops:.728,stolenBases:8}},
-    {name:'Enrique Hernandez',pos:'2B',mlbTeam:'BOS',mlbId:571771,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:22,avg:.248,slg:.368,ops:.708,stolenBases:4}},
-    {name:'Joey Meneses',pos:'1B',mlbTeam:'WSH',mlbId:665491,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:30,avg:.258,slg:.398,ops:.738,stolenBases:1}},
-    {name:'Ryan Noda',pos:'1B',mlbTeam:'OAK',mlbId:669002,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:22,avg:.225,slg:.368,ops:.712,stolenBases:2}},
-    {name:'Rhys Hoskins',pos:'1B',mlbTeam:'MIL',mlbId:543333,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:30,avg:.235,slg:.398,ops:.735,stolenBases:1}},
-    {name:'Paul Goldschmidt',pos:'1B',mlbTeam:'NYY',mlbId:502671,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.245,slg:.388,ops:.728,stolenBases:2}},
-    {name:'Jose Abreu',pos:'1B',mlbTeam:'HOU',mlbId:547989,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.238,slg:.382,ops:.718,stolenBases:0}},
-    {name:'Andrew McCutchen',pos:'DH',mlbTeam:'PIT',mlbId:457705,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:24,avg:.245,slg:.368,ops:.712,stolenBases:4}},
-    {name:'Nelson Cruz',pos:'DH',mlbTeam:'SD',mlbId:543685,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:22,avg:.235,slg:.365,ops:.705,stolenBases:0}},
-    {name:'Dylan Carlson',pos:'OF',mlbTeam:'STL',mlbId:678211,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:22,avg:.248,slg:.368,ops:.712,stolenBases:6}},
-    {name:'Jesús Sánchez',pos:'LF',mlbTeam:'MIA',mlbId:660821,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:26,avg:.245,slg:.382,ops:.722,stolenBases:4}},
-    {name:'Bryan De La Cruz',pos:'OF',mlbTeam:'MIA',mlbId:672710,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.252,slg:.385,ops:.728,stolenBases:4}},
-    {name:'Geraldo Perdomo',pos:'SS',mlbTeam:'ARI',mlbId:661389,stats:{homeRuns:4,mostHR:1,hrPerMonth:1.3,rbi:18,avg:.252,slg:.342,ops:.692,stolenBases:8}},
-    {name:'Jose Miranda',pos:'3B',mlbTeam:'MIN',mlbId:669006,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.252,slg:.385,ops:.728,stolenBases:1}},
-    {name:'Ryan McMahon',pos:'3B',mlbTeam:'COL',mlbId:641857,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:30,avg:.242,slg:.395,ops:.732,stolenBases:4}},
-    {name:'Alec Bohm',pos:'3B',mlbTeam:'PHI',mlbId:664761,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.258,slg:.385,ops:.728,stolenBases:2}},
-    {name:'Josh Jung',pos:'3B',mlbTeam:'TEX',mlbId:672515,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:28,avg:.248,slg:.388,ops:.732,stolenBases:2}},
-    {name:'Nathaniel Lowe',pos:'1B',mlbTeam:'TEX',mlbId:663993,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:30,avg:.262,slg:.388,ops:.738,stolenBases:2}},
-    {name:'Victor Caratini',pos:'C',mlbTeam:'HOU',mlbId:623911,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:22,avg:.245,slg:.358,ops:.702,stolenBases:0}},
-    {name:'Kyle Higashioka',pos:'C',mlbTeam:'SD',mlbId:595978,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:18,avg:.222,slg:.348,ops:.688,stolenBases:0}},
-    {name:'Danny Jansen',pos:'C',mlbTeam:'BOS',mlbId:642207,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:22,avg:.235,slg:.362,ops:.705,stolenBases:0}},
-    {name:'Patrick Bailey',pos:'C',mlbTeam:'SF',mlbId:663887,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:20,avg:.235,slg:.352,ops:.695,stolenBases:2}},
-    {name:'Jose Trevino',pos:'C',mlbTeam:'NYY',mlbId:650401,stats:{homeRuns:4,mostHR:1,hrPerMonth:1.3,rbi:18,avg:.232,slg:.332,ops:.682,stolenBases:0}},
-    {name:'MJ Melendez',pos:'C',mlbTeam:'KC',mlbId:669003,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:26,avg:.232,slg:.380,ops:.715,stolenBases:4}},
-    {name:'Tyler Stephenson',pos:'C',mlbTeam:'CIN',mlbId:663886,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:34,avg:.272,slg:.415,ops:.772,stolenBases:1}},
-    {name:'Francisco Alvarez',pos:'C',mlbTeam:'NYM',mlbId:682626,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:32,avg:.248,slg:.408,ops:.748,stolenBases:1}},
-    {name:'Sean Murphy',pos:'C',mlbTeam:'ATL',mlbId:669015,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.238,slg:.392,ops:.728,stolenBases:1}},
-    {name:'Ryan Jeffers',pos:'C',mlbTeam:'MIN',mlbId:680777,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.235,slg:.392,ops:.728,stolenBases:1}},
-    {name:'Austin Wells',pos:'C',mlbTeam:'NYY',mlbId:688898,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.242,slg:.392,ops:.728,stolenBases:2}},
-    {name:'Bo Naylor',pos:'C',mlbTeam:'CLE',mlbId:669005,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:24,avg:.232,slg:.382,ops:.718,stolenBases:4}},
-    {name:'Logan OHoppe',pos:'C',mlbTeam:'LAA',mlbId:687742,stats:{homeRuns:8,mostHR:3,hrPerMonth:2.7,rbi:28,avg:.242,slg:.392,ops:.728,stolenBases:2}},
-    {name:'Connor Wong',pos:'C',mlbTeam:'BOS',mlbId:671217,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:22,avg:.238,slg:.362,ops:.705,stolenBases:4}},
-    {name:'Nick Fortes',pos:'C',mlbTeam:'MIA',mlbId:660623,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:20,avg:.238,slg:.355,ops:.698,stolenBases:1}},
-    {name:'Gary Sanchez',pos:'C',mlbTeam:'MIL',mlbId:596143,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:24,avg:.228,slg:.378,ops:.715,stolenBases:0}},
   ];
   const seen=new Set();
   const allPlayers=[...rosterPlayers,...extra];
@@ -1824,49 +1529,34 @@ function showScreen(id){
 // ══ INIT ══
 let jbState = {};
 document.addEventListener('DOMContentLoaded', async function(){
-  // Load state from JSONBin
+  // Check if draft already in progress
   const state = await jbGet();
   jbState = state || {};
-
   if(state){
-    if(state.lobby && state.lobby.keepers) commKeeperData = state.lobby.keepers;
-    if(state.lobby && state.lobby.ready) state.lobby.ready.forEach(function(s){ commReadyData.add(s); });
-  }
-
-  // Check localStorage for previously claimed team
-  const savedSlot = localStorage.getItem('bdo_my_slot');
-
-  if(savedSlot !== null && state && state.claims){
-    const slot = parseInt(savedSlot);
-    // Verify claim still valid in JSONBin
-    if(state.claims[slot] === slot){
-      mySlot = slot;
-
-      // REJOIN: draft is open and in progress
-      if(state.lobby && state.lobby.draftOpen){
-        draftOpen = true;
-        if(state.draft && state.draft.cur > 0){
-          // Draft has picks — go straight to board and reconstruct
-          showScreen('draftScreen');
-          showCommDraftPanel();
-          _boardInited = true;
-          loadPlayers(state); // pass state so we can apply picks after load
-          return;
-        } else {
-          // Draft open but no picks yet — go to lobby with enter button showing
+    if(state.lobby?.keepers) commKeeperData=state.lobby.keepers;
+    if(state.lobby?.ready) state.lobby.ready.forEach(s=>commReadyData.add(s));
+    if(state.claims){
+      // Check if this browser already claimed a team (use localStorage as fallback)
+      const savedSlot = localStorage.getItem('bdo_my_slot');
+      if(savedSlot!==null){
+        const slot=parseInt(savedSlot);
+        if(state.claims[slot]===slot){
+          mySlot=slot;
+          if(state.lobby?.draftOpen&&state.draft&&state.draft.cur>0){
+            // Rejoin draft in progress
+            draftOpen=true;
+            showScreen('draftScreen');
+            _boardInited=true;
+            loadPlayers();
+            buildTeamBar(); updateHeader(); renderMyPicks();
+            return;
+          }
           enterLobby();
-          onDraftOpen();
           return;
         }
       }
-
-      // Draft not open yet — go to lobby
-      enterLobby();
-      return;
     }
   }
-
-  // No saved slot or claim expired — show claim screen
   buildClaimScreen();
 });
 
@@ -1878,7 +1568,6 @@ window.claimTeam = async function(slot){
 };
 </script>
 
-<!-- COMMISSIONER DRAFT CONTROL PANEL -->
 <div id="commDraftPanel">
   <div class="cdp-label">⚙️ COMM</div>
   <button class="cdp-btn cdp-btn-red" onclick="commResetLastPick()">↺ UNDO PICK</button>
