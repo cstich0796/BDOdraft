@@ -48,7 +48,7 @@ body{display:flex;flex-direction:column}
 .tc-status.mine{color:var(--gold)}
 
 /* ── LOBBY SCREEN ── */
-#lobbyScreen{background:var(--bg)}
+#lobbyScreen{background:var(--bg);overflow-y:auto}
 .lobby-hdr{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:10px 16px 8px;border-bottom:1px solid var(--border)}
 .lh-left{display:flex;flex-direction:column}
 .lh-eyebrow{font-size:0.42rem;letter-spacing:5px;color:var(--muted);font-weight:700}
@@ -65,7 +65,7 @@ body{display:flex;flex-direction:column}
 .kb-name{font-family:var(--bebas);font-size:0.9rem;letter-spacing:1px;color:var(--gold);flex:1}
 .kb-none{font-size:0.58rem;letter-spacing:2px;color:var(--muted);flex:1;font-weight:700}
 .kb-hint{font-size:0.44rem;letter-spacing:2px;color:#1e3055;flex-shrink:0}
-.lobby-roster{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:4px 16px;gap:2px;min-height:0}
+.lobby-roster{flex:1;overflow-y:auto;display:flex;flex-direction:column;padding:4px 16px;gap:2px;min-height:0;scrollbar-width:none}
 .rp{flex:1;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:3px;cursor:pointer;transition:all 0.12s;padding:0 10px 0 0;overflow:hidden;min-height:0}
 .rp:hover{border-color:#2a4a7a}
 .rp.sel{border-color:var(--gold);background:rgba(245,216,0,0.05)}
@@ -85,7 +85,7 @@ body{display:flex;flex-direction:column}
 .rp.sel .rp-check{background:var(--gold);border-color:var(--gold);color:#050810}
 
 /* Commissioner section */
-#commSection{display:none;margin:0 16px 8px;border:1px solid rgba(245,216,0,0.2);border-radius:4px;overflow:hidden;flex-shrink:0;max-height:42vh}
+#commSection{display:none;margin:0 16px 8px;border:1px solid rgba(245,216,0,0.2);border-radius:4px;overflow:hidden;flex-shrink:0}
 .comm-head{display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(245,216,0,0.06);border-bottom:1px solid rgba(245,216,0,0.15)}
 .comm-head-title{font-family:var(--bebas);font-size:0.85rem;letter-spacing:3px;color:var(--gold);flex:1}
 .comm-head-count{font-size:0.48rem;letter-spacing:2px;color:var(--muted)}
@@ -296,7 +296,7 @@ body{display:flex;flex-direction:column}
       <div class="comm-head-title">COMMISSIONER VIEW</div>
       <div class="comm-head-count" id="commReadyCount">0/12 READY</div>
     </div>
-    <div id="commTeamList" style="overflow-y:auto;max-height:26vh;scrollbar-width:none"></div>
+    <div id="commTeamList"></div>
     <button class="comm-open-btn" id="commOpenBtn" onclick="commOpenDraft()">⚡ OPEN THE DRAFT</button>
     <button onclick="commResetDraftFull()" style="width:calc(100% - 32px);margin:0 16px 12px;padding:10px;font-family:var(--bebas);font-size:0.8rem;letter-spacing:4px;background:transparent;border:1px solid #e74c3c;color:#e74c3c;cursor:pointer;border-radius:3px">↺ RESET DRAFT</button>
   </div>
@@ -805,20 +805,34 @@ function updateKeeperBar(){
 }
 
 // Commissioner section
-function buildCommSection(){
-  console.log('buildCommSection - commReadyData:', Array.from(commReadyData));
+function _renderCommSection(){
   const readyCount=commReadyData.size;
-  document.getElementById('commReadyCount').textContent=`${readyCount}/12 READY`;
-  document.getElementById('commTeamList').innerHTML=DRAFT_ORDER.map(t=>{
+  const rc = document.getElementById('commReadyCount');
+  if(rc) rc.textContent=readyCount+'/12 READY';
+  const list = document.getElementById('commTeamList');
+  if(!list) return;
+  list.innerHTML=DRAFT_ORDER.map(function(t){
     const isReady=commReadyData.has(t.slot);
     const keeper=commKeeperData[t.slot]||null;
-    return `<div class="comm-team-row">
-      <div class="comm-logo">${t.logo}</div>
-      <div class="comm-name" style="color:${t.color}">${t.name}</div>
-      ${keeper?`<div class="comm-keeper-tag">🔒 ${keeper.split(' ').slice(-1)[0]}</div>`:'<div class="comm-no-keeper">NO KEEPER</div>'}
-      <div class="comm-ready-dot${isReady?' on':''}"></div>
-    </div>`;
+    return '<div class="comm-team-row">'
+      +'<div class="comm-logo">'+t.logo+'</div>'
+      +'<div class="comm-name" style="color:'+t.color+'">'+t.name+'</div>'
+      +(keeper?'<div class="comm-keeper-tag">🔒 '+keeper.split(' ').slice(-1)[0]+'</div>':'<div class="comm-no-keeper">NO KEEPER</div>')
+      +'<div class="comm-ready-dot'+(isReady?' on':'')+'"></div>'
+      +'</div>';
   }).join('');
+}
+async function buildCommSection(){
+  // Always fetch fresh state
+  const state = await jbGet();
+  if(state){
+    if(state.lobby&&state.lobby.ready){
+      commReadyData=new Set();
+      state.lobby.ready.forEach(function(s){commReadyData.add(parseInt(s));});
+    }
+    if(state.lobby&&state.lobby.keepers) commKeeperData=Object.assign({},state.lobby.keepers);
+  }
+  _renderCommSection();
   const btn=document.getElementById('commOpenBtn');
   if(btn&&draftOpen){btn.textContent='✓ DRAFT IS OPEN';btn.disabled=true;}
 }
