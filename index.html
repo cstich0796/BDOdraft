@@ -1251,7 +1251,7 @@ async function pollDraft(){
 }
 
 // ══ PLAYER POOL ══
-function loadPlayers(){
+function loadPlayers(rejoinState){
   // Try live API first
   const season=new Date().getFullYear();
   // Try direct MLB Stats API first (works from browser/GitHub Pages)
@@ -1282,22 +1282,20 @@ function loadPlayers(){
           players=parsed.filter(p=>{if(seen.has(p.name))return false;seen.add(p.name);return true;});
           players.sort((a,b)=>b.stats.homeRuns-a.stats.homeRuns);
           console.log('MLB API: loaded',players.length,'players');
+          loadFallbackPlayers(rejoinState); // reconstruct picks if rejoining
           renderPool();
-          if(_boardInited) setTimeout(scheduleNextPick||function(){},300);
           setInterval(pollDraft,3500);
           return;
         }
       }
       console.log('MLB API unavailable, using fallback');
-      loadFallbackPlayers();
+      loadFallbackPlayers(rejoinState);
       renderPool();
-      if(_boardInited) setTimeout(function(){if(typeof scheduleNextPick==='function')scheduleNextPick();},300);
       setInterval(pollDraft,3500);
     })
-    .catch(() => {
-      loadFallbackPlayers();
+    .catch(function() {
+      loadFallbackPlayers(rejoinState);
       renderPool();
-      if(_boardInited) setTimeout(function(){if(typeof scheduleNextPick==='function')scheduleNextPick();},300);
       setInterval(pollDraft,3500);
     });
 
@@ -1583,7 +1581,6 @@ function loadFallbackPlayers(){
     {name:'Connor Wong',pos:'C',mlbTeam:'BOS',mlbId:671217,stats:{homeRuns:6,mostHR:2,hrPerMonth:2.0,rbi:22,avg:.238,slg:.362,ops:.705,stolenBases:4}},
     {name:'Nick Fortes',pos:'C',mlbTeam:'MIA',mlbId:660623,stats:{homeRuns:5,mostHR:2,hrPerMonth:1.7,rbi:20,avg:.238,slg:.355,ops:.698,stolenBases:1}},
     {name:'Gary Sanchez',pos:'C',mlbTeam:'MIL',mlbId:596143,stats:{homeRuns:7,mostHR:3,hrPerMonth:2.3,rbi:24,avg:.228,slg:.378,ops:.715,stolenBases:0}},
-  ];
     // ── ADDITIONAL DEPTH (reaching ~400 total) ──
     {name:'Oneil Cruz',pos:'CF',mlbTeam:'PIT',mlbId:665833,stats:{homeRuns:13,mostHR:6,hrPerMonth:4.3,rbi:42,avg:.248,slg:.440,ops:.778,stolenBases:16}},
     {name:'CJ Abrams',pos:'SS',mlbTeam:'WSH',mlbId:682928,stats:{homeRuns:9,mostHR:4,hrPerMonth:3.0,rbi:30,avg:.255,slg:.405,ops:.748,stolenBases:18}},
@@ -1827,34 +1824,49 @@ function showScreen(id){
 // ══ INIT ══
 let jbState = {};
 document.addEventListener('DOMContentLoaded', async function(){
-  // Check if draft already in progress
+  // Load state from JSONBin
   const state = await jbGet();
   jbState = state || {};
+
   if(state){
-    if(state.lobby?.keepers) commKeeperData=state.lobby.keepers;
-    if(state.lobby?.ready) state.lobby.ready.forEach(s=>commReadyData.add(s));
-    if(state.claims){
-      // Check if this browser already claimed a team (use localStorage as fallback)
-      const savedSlot = localStorage.getItem('bdo_my_slot');
-      if(savedSlot!==null){
-        const slot=parseInt(savedSlot);
-        if(state.claims[slot]===slot){
-          mySlot=slot;
-          if(state.lobby?.draftOpen&&state.draft&&state.draft.cur>0){
-            // Rejoin draft in progress
-            draftOpen=true;
-            showScreen('draftScreen');
-            _boardInited=true;
-            loadPlayers();
-            buildTeamBar(); updateHeader(); renderMyPicks();
-            return;
-          }
+    if(state.lobby && state.lobby.keepers) commKeeperData = state.lobby.keepers;
+    if(state.lobby && state.lobby.ready) state.lobby.ready.forEach(function(s){ commReadyData.add(s); });
+  }
+
+  // Check localStorage for previously claimed team
+  const savedSlot = localStorage.getItem('bdo_my_slot');
+
+  if(savedSlot !== null && state && state.claims){
+    const slot = parseInt(savedSlot);
+    // Verify claim still valid in JSONBin
+    if(state.claims[slot] === slot){
+      mySlot = slot;
+
+      // REJOIN: draft is open and in progress
+      if(state.lobby && state.lobby.draftOpen){
+        draftOpen = true;
+        if(state.draft && state.draft.cur > 0){
+          // Draft has picks — go straight to board and reconstruct
+          showScreen('draftScreen');
+          showCommDraftPanel();
+          _boardInited = true;
+          loadPlayers(state); // pass state so we can apply picks after load
+          return;
+        } else {
+          // Draft open but no picks yet — go to lobby with enter button showing
           enterLobby();
+          onDraftOpen();
           return;
         }
       }
+
+      // Draft not open yet — go to lobby
+      enterLobby();
+      return;
     }
   }
+
+  // No saved slot or claim expired — show claim screen
   buildClaimScreen();
 });
 
