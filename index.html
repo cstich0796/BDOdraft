@@ -392,6 +392,7 @@ body{display:flex;flex-direction:column}
     <div class="cdp-label">COMMISSIONER</div>
     <button class="cdp-btn cdp-btn-yellow" onclick="commGoToLobby()">← LOBBY</button>
     <button class="cdp-btn cdp-btn-red" onclick="commResetLastPick()">↺ UNDO PICK</button>
+    <button class="cdp-btn cdp-btn-red" onclick="commResetDraftFull()">⟲ RESET DRAFT</button>
   </div>
 </div>
 
@@ -992,6 +993,12 @@ async function commResetLastPick(){
 function commGoToLobby(){
   if(!confirm('Go back to lobby? Draft state will be preserved.')) return;
   showScreen('lobbyScreen');
+  document.getElementById('commDraftPanel').style.display='none';
+  if(draftOpen) onDraftOpen();
+  if(mySlot===COMMISSIONER_SLOT){
+    document.getElementById('commSection').style.display = 'block';
+    buildCommSection();
+  }
 }
 async function commResetDraftFull(){
   if(!confirm('RESET THE ENTIRE DRAFT? This clears everything and cannot be undone.')) return;
