@@ -274,7 +274,7 @@ body{display:flex;flex-direction:column}
 <div class="screen" id="lobbyScreen">
   <div class="lobby-hdr">
     <div class="lh-left">
-      <div class="lh-eyebrow">⚾ BDO REDRAFT 2026 · LOBBY</div>
+      <div class="lh-eyebrow">⚾ BDO REDRAFT 2026 · LOBBY <span onclick="exitToClaimScreen()" style="cursor:pointer;text-decoration:underline;margin-left:10px;opacity:0.75">EXIT</span></div>
       <div class="lh-name" id="lhName">—</div>
       <div class="lh-rec" id="lhRec">—</div>
     </div>
@@ -711,6 +711,11 @@ function buildClaimScreen(){
   el.innerHTML = html;
 }
 
+
+function exitToClaimScreen(){
+  showScreen('claimScreen');
+  buildClaimScreen();
+}
 
 async function rejoinDraft(slot){
   const state = await jbGet() || {};
