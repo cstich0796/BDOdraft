@@ -631,12 +631,15 @@ const imgUrl=id=>`https://img.mlbstatic.com/mlb-photos/image/upload/d_people:gen
 const heroUrl=id=>`https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:action:hero:current.png/w_800,q_auto:best/v1/people/${id}/action/hero/current`;
 
 // ══ STATE ══
-// ══ SAFE STORAGE (sandboxed preview iframes can throw on sessionStorage access) ══
+// ══ SAFE STORAGE (localStorage persists across tab closes/restarts on the
+// same device — sessionStorage did not, which is why "reclaim my team on
+// this device" used to stop working once the tab closed. Sandboxed preview
+// iframes can also throw on storage access, hence the try/catch fallback.) ══
 const _memStore = {};
 const safeStorage = {
-  getItem(k){ try{ return window.sessionStorage.getItem(k); }catch(e){ return (k in _memStore) ? _memStore[k] : null; } },
-  setItem(k,v){ try{ window.sessionStorage.setItem(k,v); }catch(e){ _memStore[k]=String(v); } },
-  removeItem(k){ try{ window.sessionStorage.removeItem(k); }catch(e){ delete _memStore[k]; } },
+  getItem(k){ try{ return window.localStorage.getItem(k); }catch(e){ return (k in _memStore) ? _memStore[k] : null; } },
+  setItem(k,v){ try{ window.localStorage.setItem(k,v); }catch(e){ _memStore[k]=String(v); } },
+  removeItem(k){ try{ window.localStorage.removeItem(k); }catch(e){ delete _memStore[k]; } },
 };
 
 let mySlot = null; // which team this user claimed
