@@ -738,7 +738,10 @@ async function claimTeam(slot){
   if(!state.claims) state.claims={};
   const alreadyClaimed = state.claims[slot] !== undefined;
   if(alreadyClaimed){
-    showToast(DRAFT_ORDER[slot].name + ' is already taken!'); return;
+    const ok = confirm(DRAFT_ORDER[slot].name + ' is already claimed. If this is YOUR team and you lost access (closed the browser, switched devices, private browsing, etc.), tap OK to get back in.');
+    if(!ok){ showToast(DRAFT_ORDER[slot].name + ' is already taken!'); return; }
+    rejoinDraft(slot);
+    return;
   }
   // Unclaimed - claim it
   state.claims[slot] = slot;
