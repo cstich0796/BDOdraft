@@ -1281,7 +1281,14 @@ function draftCurrent(){
   if(mySlot===null){showToast('Claim a team first!');return;}
   if(picks.some(pk=>pk&&pk.player.name===_currentDetailPlayer.name)){showToast('Already drafted!');return;}
   if(curPick>=N_PICKS) return;
-  if(pickInfo(curPick).teamIdx!==mySlot){showToast('Not your pick!');return;}
+  const onClockIdx = pickInfo(curPick).teamIdx;
+  if(onClockIdx!==mySlot){
+    if(mySlot===COMMISSIONER_SLOT){
+      if(!confirm('Draft '+_currentDetailPlayer.name+' for '+DRAFT_ORDER[onClockIdx].name+'?')) return;
+    } else {
+      showToast('Not your pick!'); return;
+    }
+  }
   draftPlayer(_currentDetailPlayer.name);
 }
 
